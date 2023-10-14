@@ -1,11 +1,15 @@
-package yscloudeBack
+package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"yscloudeBack/route"
+)
 
 func main() {
 	r := gin.Default()
-	r.GET("/", func(context *gin.Context) {
-
-	})
-	r.Run(":2401")
+	route.InitRoute(r)
+	err := r.Run(":8080")
+	if err != nil {
+		return
+	}
 }
