@@ -1,10 +1,16 @@
 package route
 
 import (
-	"github.com/gin-gonic/gin"
+	"yscloudeBack/source/app/controller"
 )
 
-func RegisterLogRoute(r *gin.Engine) error {
-	r.Group(getLogUrl())
+func (rg *RegisterRoute) RegisterLogRoute() error {
+	logGroup := rg.RegisterEngine.Group(joinRouterOnBasePath(getLogUrl()))
+	{
+		// Register
+		logGroup.POST(getRegisterUrl(), controller.Register)
+		logGroup.POST(getLoginUrl(), controller.Login)
+		logGroup.POST(getLogoutUrl())
+	}
 	return nil
 }
