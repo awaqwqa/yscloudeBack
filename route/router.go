@@ -1,7 +1,7 @@
 package route
 
 const (
-	BASE_PATH = "/v1/ysback"
+	BASE_PATH = "/api/v1/ysback"
 	LOGPATH   = "auth"
 	REGISTER  = "register"
 	LOGIN     = "login"

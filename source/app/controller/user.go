@@ -3,12 +3,22 @@ package controller
 import "C"
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
-// Register 用户注册
-func Register(c *gin.Context) {
-
+func checkName(name string) (bool, error) {
+	return false, nil
 }
-func Login(c *gin.Context) {
+
+// Register 用户注册
+func Register(ctx *gin.Context) {
+	name := ctx.PostForm("name")
+	key := ctx.PostForm("key")
+	passwd := ctx.PostForm("passwd")
+	if ok, err := checkName(name); err != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "msg": err.Error()})
+	}
+}
+func Login(ctx *gin.Context) {
 
 }

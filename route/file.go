@@ -1,8 +1,10 @@
 package route
 
-import "yscloudeBack/source/app/controller"
+import (
+	"yscloudeBack/uitls/file_wrapper"
+)
 
 func (rg *RegisterRoute) RegisterFileRoute() error {
-	rg.RegisterEngine.POST(joinRouterOnBasePath(getFileUrl()), controller.FileHandler)
+	rg.RegisterEngine.POST(joinRouterOnBasePath(getFileUrl()), file_wrapper.FileHandler)
 	return nil
 }

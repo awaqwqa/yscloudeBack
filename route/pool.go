@@ -42,4 +42,5 @@ func (rg *RegisterRoute) Register() {
 func InitRoute(r *gin.Engine) {
 	rg := NewRegisterRoute(r)
 	rg.Register()
+
 }
