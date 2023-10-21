@@ -31,10 +31,6 @@ func (rg *RegisterRoute) Register() {
 	if err != nil {
 		return
 	}
-	err = rg.RegisterLoadRoute()
-	if err != nil {
-		return
-	}
 
 }
 
