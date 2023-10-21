@@ -61,6 +61,18 @@ type Structure struct {
 	UploadDate string
 }
 
+type RegisterForm struct {
+	RedeemKey string `json:"redeem_key" binding:"required"`
+	UserName  string `json:"user_name" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	QQ        int    `json:"QQ" binding:"required"`
+}
+
+// login form
+type LoginForm struct {
+	UserName string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
 type User struct {
 	ID                int    `gorm:"primaryKey"`
 	UserName          string `gorm:"ot null;unique;size:255"`
