@@ -23,7 +23,11 @@ type RegisterRoute struct {
 // Initialization is performed (执行) to connect the router to the handle function.
 func (rg *RegisterRoute) Register() {
 	// TODO : connect the routers based on base_path to the handlefunction
-	err := rg.RegisterLogRoute()
+	err := rg.RegisterMiddleware()
+	if err != nil {
+		return
+	}
+	err = rg.RegisterLogRoute()
 	if err != nil {
 		return
 	}

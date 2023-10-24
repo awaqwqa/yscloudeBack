@@ -67,6 +67,7 @@ func RefreshToken(aToken, rToken string) (newAToken, newRToken string, err error
 	var claims MyClaims
 	_, err = jwt.ParseWithClaims(aToken, &claims, keyFunc)
 	v, _ := err.(*jwt.ValidationError)
+	//if not expired ,this will get new token
 	if v.Errors == jwt.ValidationErrorExpired {
 		return GenToken(claims.UserID, claims.UserName)
 	}
