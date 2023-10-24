@@ -1,4 +1,4 @@
-package route
+package model
 
 import (
 	"fmt"
@@ -9,9 +9,9 @@ import (
 
 // 其实关于这个问题 我想了有点久 就是中间件其实应该归 中间件单独的结构体管理的
 // 但是其实好像跨域问题应该是router决定的 最终还是决定应该归 中间件单独管理
-func (rg *RegisterRoute) RegisterMiddleware() error {
+func RegisterMiddleware(r *gin.Engine) error {
 	// 跨域
-	rg.RegisterEngine.Use(Cors())
+	r.Use(Cors())
 
 	return nil
 }

@@ -1,11 +1,11 @@
-package middlewares
+package middleware
 
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
-	"yscloudeBack/pkg/jwt"
 	"yscloudeBack/source/app/controller"
+	"yscloudeBack/source/app/utils"
 )
 
 // JWTAuthMiddleware 基于JWT的认证中间件 负责处理操作
@@ -34,7 +34,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			return
 		}
 		// parts[1]是获取到的tokenString，我们使用之前定义好的解析JWT的函数来解析它
-		mc, err := jwt.ParseToken(parts[1])
+		mc, err := utils.ParseToken(parts[1])
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"code": controller.CodeInvalidToken,

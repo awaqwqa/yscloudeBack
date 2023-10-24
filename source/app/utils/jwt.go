@@ -1,4 +1,4 @@
-package jwt
+package utils
 
 import (
 	"errors"
@@ -65,6 +65,7 @@ func RefreshToken(aToken, rToken string) (newAToken, newRToken string, err error
 		return "", "", err
 	}
 	var claims MyClaims
+	// 解析访问Token，获取Claims信息
 	_, err = jwt.ParseWithClaims(aToken, &claims, keyFunc)
 	v, _ := err.(*jwt.ValidationError)
 	//if not expired ,this will get new token
