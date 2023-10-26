@@ -18,11 +18,16 @@ type LoginForm struct {
 	UserName string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+// 这里需要注意的是Password是以md5加密储存的方式
 type User struct {
 	gorm.Model
-	UserName          string     `gorm:"not null;unique;size:255"`
+	UserName string `gorm:"not null;unique;size:255"`
+	//密码 md5(Password)
 	Password          string     `gorm:"not null"`
 	Mobile            string     `gorm:"not null;unique"`
+	Key               string     `gorm:"not null;unique"`
+	QQNumber          int        `gorm:"not null;unique"`
 	mu                sync.Mutex `gorm:"-"`
 	FBToken           string
 	Structures        map[string]*Structure `gorm:"-"`
@@ -33,8 +38,13 @@ type User struct {
 	ShortHash         ShortUniqueHash                      `gorm:"-"`
 }
 
-func NewUser() *User {
-	return &User{}
+func NewUser(name string, pwd string, key string) *User {
+	return &User{
+		UserName: name,
+		Password: pwd,
+		Key:      key,
+		mu:       sync.Mutex{},
+	}
 }
 func (u *User) Get() {
 

@@ -8,7 +8,7 @@ func (rg *RegisterRoute) RegisterLogRoute() error {
 	logGroup := rg.RegisterEngine.Group(joinRouterOnBasePath(getLogUrl()))
 	{
 		// Register
-		logGroup.POST(getRegisterUrl(), controller.Register)
+		logGroup.POST(getRegisterUrl(), controller.Register(rg.Db))
 		logGroup.POST(getLoginUrl(), controller.Login)
 		logGroup.POST(getLogoutUrl())
 	}

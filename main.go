@@ -5,15 +5,18 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"yscloudeBack/route"
+	"yscloudeBack/source/app/model"
 )
 
 func main() {
-	r := gin.Default()
-	route.InitRoute(r)
-	db, err := gorm.Open(sqlite.Open("yscloudBack.db"), &gorm.Config{})
+
+	Db, err := gorm.Open(sqlite.Open("yscloudBack.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
+	dbManager := model.NewDbManager(Db)
+	r := gin.Default()
+	route.InitRoute(r, dbManager)
 	err = r.Run(":24016")
 	if err != nil {
 		return

@@ -13,7 +13,6 @@ var mySecret = []byte("2401pt")
 
 // 内嵌一个jwt.StandardClaims
 type MyClaims struct {
-	UserID   uint64 `json:"user_id"`
 	UserName string `json:"user_name"`
 	jwt.StandardClaims
 }
@@ -24,14 +23,13 @@ func keyFunc(_ *jwt.Token) (i interface{}, err error) {
 }
 
 // summon access token and refresh token
-func GenToken(userId uint64, username string) (aToken, rToken string, err error) {
+func GenToken(username string) (aToken, rToken string, err error) {
 	//Create a custom definition tailored(量身定制的) to our needs
 	c := MyClaims{
-		UserID:   userId,
 		UserName: username,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(TokenExpirDuation).Unix(),
-			Issuer:    "2401pt", // Issuer
+			//ExpiresAt: time.Now().Add(TokenExpirDuation).Unix(),
+			Issuer: "2401pt", // Issuer
 		},
 	}
 	// encrypt and get the string token encode
@@ -70,7 +68,7 @@ func RefreshToken(aToken, rToken string) (newAToken, newRToken string, err error
 	v, _ := err.(*jwt.ValidationError)
 	//if not expired ,this will get new token
 	if v.Errors == jwt.ValidationErrorExpired {
-		return GenToken(claims.UserID, claims.UserName)
+		return GenToken(claims.UserName)
 	}
 	return
 }

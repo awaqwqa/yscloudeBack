@@ -23,7 +23,7 @@ func (dm *DbManager) Init() error {
 	if err != nil {
 		return err
 	}
-	return nild
+	return nil
 }
 
 // get all users from db
@@ -115,4 +115,50 @@ func (dm *DbManager) UpdateUserByUsername(username string, updatedUser *User) er
 	}
 
 	return nil
+}
+func (dm *DbManager) CreateUser(user *User) error {
+	if dm.dbEngine == nil {
+		return fmt.Errorf("db is not existing")
+	}
+	result := dm.dbEngine.Create(user)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("no rows affected, user creation failed")
+	}
+	return nil
+}
+func (dm *DbManager) DeleteUser(username string) error {
+	if dm.dbEngine == nil {
+		return fmt.Errorf("db is not existing")
+	}
+	result := dm.dbEngine.Where("user_name = ?", username).Delete(&User{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("no rows affected, user deletion failed")
+	}
+	return nil
+}
+func (dm *DbManager) AddKey(value string) error {
+	key := Key{Value: value}
+	return dm.dbEngine.Create(&key).Error
+}
+func (dm *DbManager) CheckKey(key string) (bool, error) {
+	var count int64
+	err := dm.dbEngine.Model(&Key{}).Where("value = ?", key).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+func (dm *DbManager) GetKeyCount() (int64, error) {
+	var count int64
+	err := dm.dbEngine.Model(&Key{}).Count(&count).Error
+	return count, err
+}
+func (dm *DbManager) DeleteKey(value string) error {
+	return dm.dbEngine.Where("value = ?", value).Delete(&Key{}).Error
 }
