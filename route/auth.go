@@ -9,8 +9,8 @@ func (rg *RegisterRoute) RegisterLogRoute() error {
 	{
 		// Register
 		logGroup.POST(getRegisterUrl(), controller.Register(rg.Db))
-		logGroup.POST(getLoginUrl(), controller.Login)
-		logGroup.POST(getLogoutUrl())
+		//logGroup.POST(getLoginUrl(), controller.Login)
+		//logGroup.POST(getLogoutUrl())
 	}
 	return nil
 }

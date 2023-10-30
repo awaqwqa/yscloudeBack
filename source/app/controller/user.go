@@ -1,6 +1,5 @@
 package controller
 
-import "C"
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -90,6 +89,9 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 				BackError(ctx, CodeUnknowError)
 				return
 			}
+			fmt.Println("err:", err)
+			BackError(ctx, CodeUnknowError)
+			return
 		}
 		name := rf.UserName
 		key := rf.RedeemKey
@@ -97,6 +99,7 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		qq := rf.QQ
 		if ok, code := checkIsAllow(name, passwd, key); !ok {
 			BackError(ctx, code)
+			return
 		}
 		//检查是否存在
 		_, err := manager.GetUserByUserName(name)
@@ -115,6 +118,7 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		//获取token
 		token, _, err := utils.GenToken(name)
 		if err != nil {
+			BackError(ctx, CodeUnknowError)
 			return
 		}
 		user.Token = token
@@ -122,6 +126,7 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		//存入数据库
 		err = manager.CreateUser(user)
 		if err != nil {
+			BackError(ctx, CodeUnknowError)
 			return
 		}
 		//返回成功信息

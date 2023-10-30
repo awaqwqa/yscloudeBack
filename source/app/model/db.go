@@ -23,6 +23,10 @@ func (dm *DbManager) Init() error {
 	if err != nil {
 		return err
 	}
+	err = dm.dbEngine.AutoMigrate(&Key{})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -45,7 +49,7 @@ func (dm *DbManager) GetUserByUserName(name string) (user *User, err error) {
 		}
 		return nil, result.Error
 	}
-	return
+	return user, nil
 }
 func (dm *DbManager) GetUserByToken(token string) (*User, error) {
 	var user User

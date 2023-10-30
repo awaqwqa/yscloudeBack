@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"gorm.io/gorm"
 	"sync"
 )
@@ -49,9 +48,14 @@ func NewUser(name string, pwd string, key string) *User {
 func (u *User) Get() {
 
 }
+
+/*
 func (u *User) UploadNewStructure(fileName string, fileData []byte) (err error) {
 
 }
+
+*/
+
 func (u *User) SetFBToken(fbToken string) {
 
 }
@@ -75,6 +79,7 @@ func (a *User) GetAllStructureInfoCopy() (structures map[string]Structure, err e
 }
 
 // 添加一个导入组
+/*
 func (a *User) AddProductionGroup(name string) (err error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -104,3 +109,5 @@ func (a *User) AddProductionGroup(name string) (err error) {
 	a.syncDataFn()
 	return nil
 }
+
+*/

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -15,8 +16,13 @@ func main() {
 		panic("failed to connect database")
 	}
 	dbManager := model.NewDbManager(Db)
+	err = dbManager.Init()
+	if err != nil {
+		return
+	}
 	r := gin.Default()
 	route.InitRoute(r, dbManager)
+	fmt.Println("success")
 	err = r.Run(":24016")
 	if err != nil {
 		return
