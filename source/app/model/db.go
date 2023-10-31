@@ -27,6 +27,10 @@ func (dm *DbManager) Init() error {
 	if err != nil {
 		return err
 	}
+	err = dm.AddKey("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -120,6 +124,7 @@ func (dm *DbManager) UpdateUserByUsername(username string, updatedUser *User) er
 
 	return nil
 }
+
 func (dm *DbManager) CreateUser(user *User) error {
 	if dm.dbEngine == nil {
 		return fmt.Errorf("db is not existing")
@@ -163,6 +168,12 @@ func (dm *DbManager) GetKeyCount() (int64, error) {
 	err := dm.dbEngine.Model(&Key{}).Count(&count).Error
 	return count, err
 }
+func (dm *DbManager) GetAllKeys() ([]Key, error) {
+	var keys []Key
+	err := dm.dbEngine.Find(&keys).Error
+	return keys, err
+}
+
 func (dm *DbManager) DeleteKey(value string) error {
 	return dm.dbEngine.Where("value = ?", value).Delete(&Key{}).Error
 }

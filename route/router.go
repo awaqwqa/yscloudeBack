@@ -1,18 +1,24 @@
 package route
 
 const (
-	BASE_PATH = "/api/v1/ysback"
-	LOGPATH   = "auth"
-	REGISTER  = "register"
-	LOGIN     = "login"
-	LOGOUT    = "logout"
-	LOADPATH  = "load"
-	FILEPATH  = "file"
+	BASE_PATH  = "/api/v1/ysback"
+	LOGPATH    = "auth"
+	REGISTER   = "register"
+	LOGIN      = "login"
+	LOGOUT     = "logout"
+	LOADPATH   = "load"
+	FILEPATH   = "file"
+	KEYPATH    = "key"
+	LOADSTAR   = "load_star"
+	STRUCTPATH = "structs"
+	GETSTRUCT  = "get_struct"
+	UPLOADPATH = "upload"
 )
 
 func getBaseUrl() string {
 	return BASE_PATH
 }
+
 func getLogUrl() string {
 	return LOGPATH
 }

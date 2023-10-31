@@ -17,6 +17,7 @@ func main() {
 	}
 	dbManager := model.NewDbManager(Db)
 	err = dbManager.Init()
+
 	if err != nil {
 		return
 	}

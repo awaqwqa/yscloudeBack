@@ -5,19 +5,6 @@ import (
 	"sync"
 )
 
-type RegisterForm struct {
-	RedeemKey string `json:"redeem_key" binding:"required"`
-	UserName  string `json:"user_name" binding:"required"`
-	Password  string `json:"password" binding:"required"`
-	QQ        int    `json:"QQ" binding:"required"`
-}
-
-// login form
-type LoginForm struct {
-	UserName string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 // 这里需要注意的是Password是以md5加密储存的方式
 type User struct {
 	gorm.Model

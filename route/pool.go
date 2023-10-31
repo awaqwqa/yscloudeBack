@@ -2,6 +2,8 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
+	"yscloudeBack/source/app/controller"
+	"yscloudeBack/source/app/middleware"
 	"yscloudeBack/source/app/model"
 )
 
@@ -32,13 +34,37 @@ func (rg *RegisterRoute) Register() {
 	if err != nil {
 		return
 	}*/
-	err := rg.RegisterLogRoute()
-	if err != nil {
-		return
-	}
-	err = rg.RegisterLoadRoute()
-	if err != nil {
-		return
+	baseGroup := rg.RegisterEngine.Group(BASE_PATH)
+	{
+		logGroup := baseGroup.Group(LOGPATH)
+		{
+			// Register
+			logGroup.POST(getRegisterUrl(), controller.Register(rg.Db))
+			//logGroup.POST(getLoginUrl(), controller.Login)
+			//logGroup.POST(getLogoutUrl())
+		}
+
+		// key controller
+		keyGroup := baseGroup.Group(KEYPATH)
+		keyGroup.Use(middleware.JWTAuthMiddleware())
+		keyGroup.Use(middleware.CheckAdmin())
+		{
+			keyGroup.POST("/register", controller.RegisterKey(rg.Db))
+		}
+
+		LoadGroup := baseGroup.Group(LOADPATH)
+		LoadGroup.Use(middleware.JWTAuthMiddleware())
+		{
+			LoadGroup.POST(LOADSTAR, controller.LoadHandler(rg.Db))
+		}
+		StructGroup := baseGroup.Group(STRUCTPATH)
+		StructGroup.Use(middleware.JWTAuthMiddleware())
+		rg.RegisterEngine.MaxMultipartMemory = 8 << 20 // 8 MiB
+		{
+			StructGroup.GET(GETSTRUCT, controller.GetStruct(rg.Db))
+			StructGroup.POST(UPLOADPATH, controller.UploadFile(rg.Db))
+		}
+
 	}
 
 }

@@ -15,6 +15,8 @@ type RedeemStatus struct {
 	Detail string
 }
 
+// 导入的表单
+
 type BuildOption struct {
 	Auth struct {
 		Type  string `form:"type"`
