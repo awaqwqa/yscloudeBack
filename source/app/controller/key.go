@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"net/http"
 	"yscloudeBack/source/app/model"
 )
@@ -11,14 +9,9 @@ import (
 func RegisterKey(db *model.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var k *model.Key
-		if err := ctx.ShouldBindJSON(&k); err != nil {
-			_, ok := err.(validator.ValidationErrors)
-			if ok {
-				model.BackError(ctx, model.CodeUnknowError)
-				return
-			}
-			fmt.Println("err:", err)
-			model.BackError(ctx, model.CodeUnknowError)
+		code, err2 := model.BindStruct(ctx, k)
+		if err2 != nil {
+			model.BackError(ctx, code)
 			return
 		}
 		err := db.AddKey(k.Value)

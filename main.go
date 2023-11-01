@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"yscloudeBack/route"
 	"yscloudeBack/source/app/model"
+	"yscloudeBack/source/app/utils"
 )
 
 func main() {
@@ -17,13 +17,15 @@ func main() {
 	}
 	dbManager := model.NewDbManager(Db)
 	err = dbManager.Init()
-
 	if err != nil {
 		return
 	}
+
+	cmdControler := utils.NewCmdController()
+	cmdControler.Init()
+	cmdControler.Listen()
 	r := gin.Default()
 	route.InitRoute(r, dbManager)
-	fmt.Println("success")
 	err = r.Run(":24016")
 	if err != nil {
 		return

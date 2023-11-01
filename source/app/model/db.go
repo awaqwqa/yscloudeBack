@@ -27,17 +27,6 @@ func (dm *DbManager) Init() error {
 	if err != nil {
 		return err
 	}
-	_, err = dm.GetUserByUserName("admin")
-	if err != nil {
-		err := dm.CreateUser(NewUser("admin", "2401Pt_", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
-		if err != nil {
-			return err
-		}
-	}
-	err = dm.AddKey("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
