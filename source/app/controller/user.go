@@ -83,14 +83,9 @@ func checkIsAllow(name string, passwd string, key string) (bool, model.MyCode) {
 func Register(manager *model.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var rf *model.RegisterForm
-		if err := ctx.ShouldBindJSON(&rf); err != nil {
-			_, ok := err.(validator.ValidationErrors)
-			if ok {
-				model.BackError(ctx, model.CodeUnknowError)
-				return
-			}
-			fmt.Println("err:", err)
-			model.BackError(ctx, model.CodeUnknowError)
+		code, err := model.BindStruct(ctx, rf)
+		if err != nil {
+			model.BackError(ctx, code)
 			return
 		}
 		name := rf.UserName
@@ -102,7 +97,7 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 			return
 		}
 		//检查是否存在
-		_, err := manager.GetUserByUserName(name)
+		_, err = manager.GetUserByUserName(name)
 		if err == nil {
 			model.BackError(ctx, model.CodeUserExist)
 			return
