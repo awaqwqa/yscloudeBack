@@ -64,17 +64,17 @@ func checkKey(key string) error {
 
 	return nil
 }
-func checkIsAllow(name string, passwd string, key string) (bool, MyCode) {
+func checkIsAllow(name string, passwd string, key string) (bool, model.MyCode) {
 	if ok, _ := checkName(name); !ok {
-		return false, CodeUserNameFalse
+		return false, model.CodeUserNameFalse
 	}
 	//检查是否合法
 	if err := checkPasswd(passwd); err != nil {
-		return false, CodeUserPasswdFalse
+		return false, model.CodeUserPasswdFalse
 	}
 	//检查语法是否合法
 	if err := checkKey(key); err != nil {
-		return false, CodeInvalidKey
+		return false, model.CodeInvalidKey
 	}
 	return true, 0
 }
@@ -86,11 +86,11 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		if err := ctx.ShouldBindJSON(&rf); err != nil {
 			_, ok := err.(validator.ValidationErrors)
 			if ok {
-				BackError(ctx, CodeUnknowError)
+				model.BackError(ctx, model.CodeUnknowError)
 				return
 			}
 			fmt.Println("err:", err)
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 		name := rf.UserName
@@ -98,18 +98,18 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		passwd := rf.Password
 		qq := rf.QQ
 		if ok, code := checkIsAllow(name, passwd, key); !ok {
-			BackError(ctx, code)
+			model.BackError(ctx, code)
 			return
 		}
 		//检查是否存在
 		_, err := manager.GetUserByUserName(name)
 		if err == nil {
-			BackError(ctx, CodeUserExist)
+			model.BackError(ctx, model.CodeUserExist)
 			return
 		}
 		//检查key是否存在
 		if ok, _ := manager.CheckKey(key); !ok {
-			BackError(ctx, CodeInvalidKey)
+			model.BackError(ctx, model.CodeInvalidKey)
 			return
 		}
 
@@ -118,7 +118,7 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		//获取token
 		token, _, err := utils.GenToken(name)
 		if err != nil {
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 		user.Token = token
@@ -126,13 +126,13 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		//存入数据库
 		err = manager.CreateUser(user)
 		if err != nil {
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 		//返回成功信息
 		ctx.JSON(http.StatusOK, gin.H{
-			"code":  CodeSuccess,
-			"msg":   CodeSuccess.Msg(),
+			"code":  model.CodeSuccess,
+			"msg":   model.CodeSuccess.Msg(),
 			"Token": token,
 		})
 		return
@@ -144,36 +144,36 @@ func Login(manager *model.DbManager) gin.HandlerFunc {
 		if err := ctx.ShouldBindJSON(&lf); err != nil {
 			_, ok := err.(validator.ValidationErrors)
 			if ok {
-				BackError(ctx, CodeUnknowError)
+				model.BackError(ctx, model.CodeUnknowError)
 				return
 			}
 		}
 		if ok, _ := checkName(lf.UserName); !ok {
-			BackError(ctx, CodeUserNameFalse)
+			model.BackError(ctx, model.CodeUserNameFalse)
 			return
 		}
 		if err := checkPasswd(lf.UserName); err != nil {
-			BackError(ctx, CodeUserPasswdFalse)
+			model.BackError(ctx, model.CodeUserPasswdFalse)
 			return
 		}
 		user, err := manager.GetUserByUserName(lf.UserName)
 		if err != nil {
-			BackError(ctx, CodeUserNotExist)
+			model.BackError(ctx, model.CodeUserNotExist)
 			return
 		}
 		if user.Password != utils.Md5Encrypt(lf.Password) {
-			BackError(ctx, CodeInvalidPassword)
+			model.BackError(ctx, model.CodeInvalidPassword)
 			return
 		}
 		token, _, err := utils.GenToken(lf.UserName)
 		if err != nil {
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 
 		ctx.JSON(http.StatusOK, gin.H{
-			"code":  CodeSuccess,
-			"msg":   CodeSuccess.Msg(),
+			"code":  model.CodeSuccess,
+			"msg":   model.CodeSuccess.Msg(),
 			"Token": token,
 		})
 

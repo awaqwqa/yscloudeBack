@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
-	"yscloudeBack/source/app/controller"
+	"yscloudeBack/source/app/model"
 	"yscloudeBack/source/app/utils"
 )
 
@@ -41,8 +41,8 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		mc, err := utils.ParseToken(parts[1])
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
-				"code": controller.CodeInvalidToken,
-				"msg":  controller.CodeInvalidToken.Msg(),
+				"code": model.CodeInvalidToken,
+				"msg":  model.CodeInvalidToken.Msg(),
 			})
 			c.Abort()
 			return
@@ -56,12 +56,12 @@ func CheckAdmin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		value, ok := ctx.Get("username")
 		if !ok {
-			controller.BackError(ctx, controller.CodeInvalidToken)
+
 			return
 		}
 		userName := value
 		if userName != "admin" {
-			controller.BackError(ctx, controller.CodeInvalidLevel)
+
 			return
 		}
 	}

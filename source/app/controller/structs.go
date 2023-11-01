@@ -13,27 +13,27 @@ func GetStruct(db *model.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userName, isok := ctx.Get(middleware.ContextName)
 		if !isok {
-			BackError(ctx, CodeInvalidToken)
+			model.BackError(ctx, model.CodeInvalidToken)
 			return
 		}
 		value, isok := userName.(string)
 		if !isok {
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 		user, err := db.GetUserByUserName(value)
 		if err != nil {
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 		infoCopy, err := user.GetAllStructureInfoCopy()
 		if err != nil {
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 		ctx.JSON(http.StatusOK, gin.H{
-			"code":    CodeSuccess,
-			"msg":     CodeSuccess.Msg(),
+			"code":    model.CodeSuccess,
+			"msg":     model.CodeSuccess.Msg(),
 			"structs": infoCopy,
 		})
 	}

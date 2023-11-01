@@ -14,11 +14,11 @@ func RegisterKey(db *model.DbManager) gin.HandlerFunc {
 		if err := ctx.ShouldBindJSON(&k); err != nil {
 			_, ok := err.(validator.ValidationErrors)
 			if ok {
-				BackError(ctx, CodeUnknowError)
+				model.BackError(ctx, model.CodeUnknowError)
 				return
 			}
 			fmt.Println("err:", err)
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 		err := db.AddKey(k.Value)
@@ -26,8 +26,8 @@ func RegisterKey(db *model.DbManager) gin.HandlerFunc {
 			return
 		}
 		ctx.JSON(http.StatusOK, gin.H{
-			"code": CodeSuccess,
-			"msg":  CodeSuccess.Msg(),
+			"code": model.CodeSuccess,
+			"msg":  model.CodeSuccess.Msg(),
 		})
 	}
 }
@@ -37,12 +37,12 @@ func GetKey(db *model.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		keys, err := db.GetAllKeys()
 		if err != nil {
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 		ctx.JSON(http.StatusOK, gin.H{
-			"code": CodeSuccess,
-			"msg":  CodeSuccess.Msg(),
+			"code": model.CodeSuccess,
+			"msg":  model.CodeSuccess.Msg(),
 			"keys": keys,
 		})
 		return
@@ -55,17 +55,17 @@ func DelKey(db *model.DbManager) gin.HandlerFunc {
 		}
 
 		if err := ctx.ShouldBind(&form); err != nil {
-			BackError(ctx, CodeInvalidKey)
+			model.BackError(ctx, model.CodeInvalidKey)
 			return
 		}
 		err := db.DeleteKey(form.DelKey)
 		if err != nil {
-			BackError(ctx, CodeUnknowError)
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
 		ctx.JSON(http.StatusOK, gin.H{
-			"code": CodeSuccess,
-			"msg":  CodeSuccess.Msg(),
+			"code": model.CodeSuccess,
+			"msg":  model.CodeSuccess.Msg(),
 		})
 		return
 	}
