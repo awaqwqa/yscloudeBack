@@ -74,6 +74,7 @@ func checkIsAllow(name string, passwd string, key string) (bool, model.MyCode) {
 	}
 	//检查语法是否合法
 	if err := checkKey(key); err != nil {
+		fmt.Println(err)
 		return false, model.CodeInvalidKey
 	}
 	return true, 0
@@ -83,7 +84,7 @@ func checkIsAllow(name string, passwd string, key string) (bool, model.MyCode) {
 func Register(manager *model.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var rf *model.RegisterForm
-		code, err := model.BindStruct(ctx, rf)
+		code, err := model.BindStruct(ctx, &rf)
 		if err != nil {
 			model.BackError(ctx, code)
 			return
@@ -107,13 +108,18 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeInvalidKey)
 			return
 		}
-
+		//删除key
+		err = manager.DeleteKey(key)
+		if err != nil {
+			model.BackError(ctx, model.CodeGetKeyFalse)
+			return
+		}
 		// if pass  all
 		user := model.NewUser(name, utils.Md5Encrypt(passwd), key)
 		//获取token
 		token, _, err := utils.GenToken(name)
 		if err != nil {
-			model.BackError(ctx, model.CodeUnknowError)
+			model.BackError(ctx, model.CodeGetTokenFalse)
 			return
 		}
 		user.Token = token
@@ -121,7 +127,8 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		//存入数据库
 		err = manager.CreateUser(user)
 		if err != nil {
-			model.BackError(ctx, model.CodeUnknowError)
+
+			model.BackError(ctx, model.CodeCreateUserFalse)
 			return
 		}
 		//返回成功信息

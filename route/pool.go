@@ -46,10 +46,12 @@ func (rg *RegisterRoute) Register() {
 
 		// key controller
 		keyGroup := baseGroup.Group(KEYPATH)
-		keyGroup.Use(middleware.JWTAuthMiddleware())
-		keyGroup.Use(middleware.CheckAdmin())
+		//keyGroup.Use(middleware.JWTAuthMiddleware())
+		//keyGroup.Use(middleware.CheckAdmin())
 		{
-			keyGroup.POST("/register", controller.RegisterKey(rg.Db))
+
+			keyGroup.GET("/register", controller.RegisterKey(rg.Db))
+			keyGroup.GET("/get_keys", controller.GetKey(rg.Db))
 		}
 
 		LoadGroup := baseGroup.Group(LOADPATH)

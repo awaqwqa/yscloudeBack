@@ -25,6 +25,9 @@ const (
 	CodeInvalidKey        MyCode = 1011
 	CodeBindJsonFalse     MyCode = 1012
 	CodeInvalidLevel      MyCode = 1013
+	CodeGetKeyFalse       MyCode = 1014
+	CodeGetTokenFalse     MyCode = 1015
+	CodeCreateUserFalse   MyCode = 1016
 )
 
 var msgFlags = map[MyCode]string{
@@ -40,9 +43,12 @@ var msgFlags = map[MyCode]string{
 	CodeNotLogin:          "未登录",
 	CodeUserNameFalse:     "名字非法",
 	CodeUserPasswdFalse:   "密码非法",
-	CodeInvalidKey:        "密钥不存在",
+	CodeInvalidKey:        "密钥非法",
 	CodeBindJsonFalse:     "绑定数据错误",
 	CodeInvalidLevel:      "越权处理",
+	CodeGetKeyFalse:       "删除key失败",
+	CodeGetTokenFalse:     "获取token失败",
+	CodeCreateUserFalse:   "创建user失败",
 }
 
 func BackError(ctx *gin.Context, code MyCode) {

@@ -26,6 +26,7 @@ type User struct {
 
 func NewUser(name string, pwd string, key string) *User {
 	return &User{
+		Mobile:   key,
 		UserName: name,
 		Password: pwd,
 		Key:      key,

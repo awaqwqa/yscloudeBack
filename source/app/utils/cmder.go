@@ -38,8 +38,15 @@ func (c *CmdController) ExecuteCommand(input string) {
 	}
 }
 func DbCmdHandle(args []string) {
-	for _, v := range args {
-		fmt.Print(v)
+	if len(args) == 0 {
+		return
+	}
+
+	switch args[0] {
+	case "User":
+		if len(args) < 2 {
+
+		}
 	}
 	fmt.Println()
 }

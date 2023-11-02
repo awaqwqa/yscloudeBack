@@ -8,7 +8,7 @@ import (
 func LoadHandler(db *model.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var lf *model.LoadForm
-		code, err := model.BindStruct(ctx, lf)
+		code, err := model.BindStruct(ctx, &lf)
 		if err != nil {
 			model.BackError(ctx, code)
 			return

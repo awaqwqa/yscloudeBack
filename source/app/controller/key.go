@@ -4,18 +4,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"yscloudeBack/source/app/model"
+	"yscloudeBack/source/app/utils"
 )
 
 func RegisterKey(db *model.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var k *model.Key
-		code, err2 := model.BindStruct(ctx, k)
-		if err2 != nil {
-			model.BackError(ctx, code)
+		key, err := utils.GenerateRandomKey()
+		if err != nil {
+			model.BackError(ctx, model.CodeGetKeyFalse)
 			return
 		}
-		err := db.AddKey(k.Value)
+		err = db.AddKey(key)
 		if err != nil {
+			model.BackError(ctx, model.CodeInvalidKey)
 			return
 		}
 		ctx.JSON(http.StatusOK, gin.H{
@@ -33,10 +34,14 @@ func GetKey(db *model.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
+		key_values := []string{}
+		for _, v := range keys {
+			key_values = append(key_values, v.Value)
+		}
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": model.CodeSuccess,
 			"msg":  model.CodeSuccess.Msg(),
-			"keys": keys,
+			"keys": key_values,
 		})
 		return
 	}
