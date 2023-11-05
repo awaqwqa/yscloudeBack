@@ -28,6 +28,7 @@ const (
 	CodeGetKeyFalse       MyCode = 1014
 	CodeGetTokenFalse     MyCode = 1015
 	CodeCreateUserFalse   MyCode = 1016
+	CodeGetUserFalse      MyCode = 1017
 )
 
 var msgFlags = map[MyCode]string{
@@ -49,6 +50,7 @@ var msgFlags = map[MyCode]string{
 	CodeGetKeyFalse:       "删除key失败",
 	CodeGetTokenFalse:     "获取token失败",
 	CodeCreateUserFalse:   "创建user失败",
+	CodeGetUserFalse:      "获取user失败",
 }
 
 func BackError(ctx *gin.Context, code MyCode) {
@@ -57,10 +59,11 @@ func BackError(ctx *gin.Context, code MyCode) {
 		"msg":  code.Msg(),
 	})
 }
-func BackSuccess(ctx *gin.Context) {
+func BackSuccess(ctx *gin.Context, body interface{}) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": CodeSuccess,
 		"msg":  CodeSuccess.Msg(),
+		"body": body,
 	})
 }
 func (c MyCode) Msg() string {

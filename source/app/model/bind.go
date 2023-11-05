@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"yscloudeBack/source/app/utils"
 )
 
 func BindStruct(ctx *gin.Context, st any) (MyCode, error) {
@@ -12,7 +13,7 @@ func BindStruct(ctx *gin.Context, st any) (MyCode, error) {
 		if ok {
 			return CodeUnknowError, fmt.Errorf("Validation")
 		}
-		fmt.Println("err:", err)
+		utils.Error(err.Error())
 		return CodeUnknowError, fmt.Errorf("unkonw")
 	}
 	return CodeSuccess, nil

@@ -6,6 +6,13 @@ type LoadForm struct {
 	IsAdvance bool          `json:"advance"`
 	Ac        AdvanceConfig `json:"config"`
 }
+
+// 用于返回信息的
+type BackMsg struct {
+	Code   int         `json:"code"`
+	Status string      `json:"status"`
+	Body   interface{} `json:"body"`
+}
 type RegisterForm struct {
 	RedeemKey string `json:"redeem_key" binding:"required"`
 	UserName  string `json:"user_name" binding:"required"`

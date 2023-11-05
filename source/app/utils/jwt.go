@@ -28,8 +28,8 @@ func GenToken(username string) (aToken, rToken string, err error) {
 	c := MyClaims{
 		UserName: username,
 		StandardClaims: jwt.StandardClaims{
-			//ExpiresAt: time.Now().Add(TokenExpirDuation).Unix(),
-			Issuer: "2401pt", // Issuer
+			ExpiresAt: time.Now().Add(TokenExpirDuation).Unix(),
+			Issuer:    username, // Issuer
 		},
 	}
 	// encrypt and get the string token encode

@@ -79,6 +79,33 @@ func checkIsAllow(name string, passwd string, key string) (bool, model.MyCode) {
 	}
 	return true, 0
 }
+func GetUserName(rg *model.DbManager) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		users, err := rg.GetUsers()
+		if err != nil {
+			model.BackError(ctx, model.CodeGetUserFalse)
+			return
+		}
+		resultSlice := []string{}
+		for _, v := range users {
+			resultSlice = append(resultSlice, v.UserName)
+		}
+		model.BackSuccess(ctx, resultSlice)
+		return
+	}
+}
+func GetUsers(rg *model.DbManager) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		users, err := rg.GetUsers()
+		if err != nil {
+			model.BackError(ctx, model.CodeGetUserFalse)
+			return
+		}
+
+		model.BackSuccess(ctx, users)
+		return
+	}
+}
 
 // Register 用户注册
 func Register(manager *model.DbManager) gin.HandlerFunc {

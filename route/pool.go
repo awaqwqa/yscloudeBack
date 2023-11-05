@@ -43,11 +43,15 @@ func (rg *RegisterRoute) Register() {
 			//logGroup.POST(getLoginUrl(), controller.Login)
 			//logGroup.POST(getLogoutUrl())
 		}
-
+		adminGroup := baseGroup.Group("/admin")
+		{
+			adminGroup.GET("/get_user_name", controller.GetUserName(rg.Db))
+			adminGroup.GET("/get_users", controller.GetUsers(rg.Db))
+		}
 		// key controller
 		keyGroup := baseGroup.Group(KEYPATH)
-		//keyGroup.Use(middleware.JWTAuthMiddleware())
-		//keyGroup.Use(middleware.CheckAdmin())
+		keyGroup.Use(middleware.JWTAuthMiddleware())
+		keyGroup.Use(middleware.CheckAdmin())
 		{
 
 			keyGroup.GET("/register", controller.RegisterKey(rg.Db))

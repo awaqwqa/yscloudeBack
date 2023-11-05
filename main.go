@@ -24,6 +24,10 @@ func main() {
 	cmdControler := utils.NewCmdController()
 	cmdControler.Init()
 	cmdControler.Listen()
+
+	//loger
+	utils.NewLoggerManager("./log")
+
 	r := gin.Default()
 	route.InitRoute(r, dbManager)
 	err = r.Run(":24016")
