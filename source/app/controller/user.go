@@ -6,6 +6,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"net/http"
 	"regexp"
+	"yscloudeBack/source/app/middleware"
 	"yscloudeBack/source/app/model"
 	"yscloudeBack/source/app/utils"
 )
@@ -28,7 +29,7 @@ func checkName(name string) (bool, error) {
 }
 
 func checkPasswd(password string) error {
-	if len(password) < 8 || len(password) > 16 {
+	if len(password) < 8 || len(password) > 20 {
 		return fmt.Errorf("password must be between 8 and 16 characters")
 	}
 	// 检查密码是否包含至少一个数字
@@ -106,6 +107,77 @@ func GetUsers(rg *model.DbManager) gin.HandlerFunc {
 		return
 	}
 }
+func GetUserInfo(db *model.DbManager) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		token := ctx.Query("token")
+		claim, err := utils.ParseToken(token)
+		if err != nil {
+			model.BackError(ctx, model.CodeGetUserFalse)
+			return
+		}
+		userName := claim.UserName
+		_, err = db.GetUserByUserName(userName)
+		if err != nil {
+			model.BackError(ctx, model.CodeGetUserFalse)
+			return
+		}
+		model.BackSuccess(ctx, gin.H{
+			"roles":        []string{"user"},
+			"name":         userName,
+			"avatar":       "nil",
+			"introduction": "nil",
+		})
+		return
+
+	}
+}
+func DelUserKey(manager *model.DbManager) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var form struct {
+			DelKey string `form:"del_key" binding:"required" json:"del_key"`
+		}
+
+		if err := ctx.ShouldBind(&form); err != nil {
+
+			model.BackError(ctx, model.CodeInvalidKey)
+			return
+		}
+		userName, isok := ctx.Get(middleware.ContextName)
+		if !isok {
+			model.BackError(ctx, model.CodeGetUserFalse)
+			return
+		}
+		if value, isok := userName.(string); isok {
+			user, err := manager.GetUserByUserName(value)
+			if err != nil {
+				model.BackError(ctx, model.CodeGetUserFalse)
+				return
+			}
+			user.DelKeys(form.DelKey)
+			model.BackSuccess(ctx, nil)
+		}
+		model.BackSuccess(ctx, model.CodeUnknowError)
+	}
+}
+func GetUserKeys(manager *model.DbManager) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		userName, isok := ctx.Get(middleware.ContextName)
+		if !isok {
+			model.BackError(ctx, model.CodeGetUserFalse)
+			return
+		}
+		if value, isok := userName.(string); isok {
+			user, err := manager.GetUserByUserName(value)
+			if err != nil {
+				model.BackError(ctx, model.CodeGetUserFalse)
+				return
+			}
+			model.BackSuccess(ctx, user.GetKeys())
+			return
+		}
+		model.BackError(ctx, model.CodeUnknowError)
+	}
+}
 
 // Register 用户注册
 func Register(manager *model.DbManager) gin.HandlerFunc {
@@ -154,7 +226,6 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		//存入数据库
 		err = manager.CreateUser(user)
 		if err != nil {
-
 			model.BackError(ctx, model.CodeCreateUserFalse)
 			return
 		}
@@ -181,7 +252,7 @@ func Login(manager *model.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeUserNameFalse)
 			return
 		}
-		if err := checkPasswd(lf.UserName); err != nil {
+		if err := checkPasswd(lf.Password); err != nil {
 			model.BackError(ctx, model.CodeUserPasswdFalse)
 			return
 		}
@@ -199,11 +270,10 @@ func Login(manager *model.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
-
 		ctx.JSON(http.StatusOK, gin.H{
 			"code":  model.CodeSuccess,
 			"msg":   model.CodeSuccess.Msg(),
-			"Token": token,
+			"token": token,
 		})
 
 	}

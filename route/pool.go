@@ -40,10 +40,14 @@ func (rg *RegisterRoute) Register() {
 		{
 			// Register
 			logGroup.POST(getRegisterUrl(), controller.Register(rg.Db))
-			//logGroup.POST(getLoginUrl(), controller.Login)
+			logGroup.POST("/login", controller.Login(rg.Db))
+			logGroup.GET("/get_user_info", controller.GetUserInfo(rg.Db))
 			//logGroup.POST(getLogoutUrl())
 		}
+
 		adminGroup := baseGroup.Group("/admin")
+		adminGroup.Use(middleware.JWTAuthMiddleware())
+		adminGroup.Use(middleware.CheckAdmin())
 		{
 			adminGroup.GET("/get_user_name", controller.GetUserName(rg.Db))
 			adminGroup.GET("/get_users", controller.GetUsers(rg.Db))
@@ -56,6 +60,7 @@ func (rg *RegisterRoute) Register() {
 
 			keyGroup.GET("/register", controller.RegisterKey(rg.Db))
 			keyGroup.GET("/get_keys", controller.GetKey(rg.Db))
+			keyGroup.POST("/del_key", controller.DelKey(rg.Db))
 		}
 
 		LoadGroup := baseGroup.Group(LOADPATH)
@@ -63,6 +68,7 @@ func (rg *RegisterRoute) Register() {
 		{
 			LoadGroup.POST(LOADSTAR, controller.LoadHandler(rg.Db))
 		}
+
 		StructGroup := baseGroup.Group(STRUCTPATH)
 		StructGroup.Use(middleware.JWTAuthMiddleware())
 		rg.RegisterEngine.MaxMultipartMemory = 8 << 20 // 8 MiB
@@ -71,6 +77,12 @@ func (rg *RegisterRoute) Register() {
 			StructGroup.POST(UPLOADPATH, controller.UploadFile(rg.Db))
 		}
 
+		userGroup := baseGroup.Group("/user")
+		userGroup.Use(middleware.JWTAuthMiddleware())
+		{
+			userGroup.GET("/get_keys", controller.GetUserKeys(rg.Db))
+			userGroup.POST("/del_keys", controller.DelUserKey(rg.Db))
+		}
 	}
 
 }

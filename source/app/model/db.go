@@ -19,7 +19,11 @@ func (dm *DbManager) Init() error {
 	if dm.dbEngine == nil {
 		return fmt.Errorf("db is not exiting,maybe init() will help you")
 	}
-	err := dm.dbEngine.AutoMigrate(&User{})
+	err := dm.dbEngine.AutoMigrate(&UserKey{})
+	if err != nil {
+		return err
+	}
+	err = dm.dbEngine.AutoMigrate(&User{})
 	if err != nil {
 		return err
 	}

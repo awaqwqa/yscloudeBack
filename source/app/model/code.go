@@ -44,7 +44,7 @@ var msgFlags = map[MyCode]string{
 	CodeNotLogin:          "未登录",
 	CodeUserNameFalse:     "名字非法",
 	CodeUserPasswdFalse:   "密码非法",
-	CodeInvalidKey:        "密钥非法",
+	CodeInvalidKey:        "密钥无效",
 	CodeBindJsonFalse:     "绑定数据错误",
 	CodeInvalidLevel:      "越权处理",
 	CodeGetKeyFalse:       "删除key失败",

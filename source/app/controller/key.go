@@ -38,21 +38,18 @@ func GetKey(db *model.DbManager) gin.HandlerFunc {
 		for _, v := range keys {
 			key_values = append(key_values, v.Value)
 		}
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": model.CodeSuccess,
-			"msg":  model.CodeSuccess.Msg(),
-			"keys": key_values,
-		})
+		model.BackSuccess(ctx, key_values)
 		return
 	}
 }
 func DelKey(db *model.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var form struct {
-			DelKey string `form:"del_key" binding:"required"`
+			DelKey string `form:"del_key" binding:"required" json:"del_key"`
 		}
 
 		if err := ctx.ShouldBind(&form); err != nil {
+
 			model.BackError(ctx, model.CodeInvalidKey)
 			return
 		}

@@ -22,7 +22,7 @@ type RegisterForm struct {
 
 // login form
 type LoginForm struct {
-	UserName string `json:"username" binding:"required"`
+	UserName string `json:"user_name" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
