@@ -122,14 +122,23 @@ func GetUserInfo(db *db.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeGetUserFalse)
 			return
 		}
+		roles := []string{"user"}
+		if userName == "admin" {
+			roles = append(roles, "admin")
+		}
 		model.BackSuccess(ctx, gin.H{
-			"roles":        []string{"user"},
+			"roles":        roles,
 			"name":         userName,
 			"avatar":       "nil",
 			"introduction": "nil",
 		})
 		return
 
+	}
+}
+func GetUserFileName(manager *db.DbManager) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		model.BackSuccess(ctx, []string{"大型建筑", "测试建筑"})
 	}
 }
 func AddUserKey(manager *db.DbManager) gin.HandlerFunc {
@@ -153,6 +162,12 @@ func AddUserKey(manager *db.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeCodeIsUsed)
 			return
 		}
+		// 判断userKey是否是期待类型
+		if userKey.Usage != model.USAGE_LOAD {
+			model.BackError(ctx, model.CodeCodeTypeFalse)
+			return
+		}
+		// 获取 user
 		name, isExit := ctx.Get(middleware.ContextName)
 		if !isExit {
 			model.BackError(ctx, model.CodeUnknowError)
@@ -174,7 +189,11 @@ func AddUserKey(manager *db.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
-
+		err = manager.UpdateKeyFileGroupName(userKey, form.FileGroup)
+		if err != nil {
+			model.BackError(ctx, model.CodeUnknowError)
+			return
+		}
 		// 绑定user和key
 		err = manager.AssociateKeyWithUser(user.ID, userKey.ID)
 		if err != nil {
@@ -182,6 +201,7 @@ func AddUserKey(manager *db.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
+
 		model.BackSuccess(ctx, nil)
 	}
 }
@@ -193,7 +213,6 @@ func DelUserKey(manager *db.DbManager) gin.HandlerFunc {
 		}
 
 		if err := ctx.ShouldBind(&form); err != nil {
-
 			model.BackError(ctx, model.CodeInvalidKey)
 			return
 		}
@@ -211,6 +230,11 @@ func DelUserKey(manager *db.DbManager) gin.HandlerFunc {
 
 			if !user.CheckLoadKey(form.DelKey) {
 				model.BackError(ctx, model.CodeInvalidKey)
+				return
+			}
+			err = manager.DeleteKey(form.DelKey)
+			if err != nil {
+				model.BackError(ctx, model.CodeUnknowError)
 				return
 			}
 			model.BackSuccess(ctx, nil)
@@ -236,7 +260,7 @@ func GetUserKeys(manager *db.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeGetUserFalse)
 			return
 		}
-		
+
 		keys := user.GetLoadKeys()
 		if keys != nil {
 			model.BackSuccess(ctx, keys)

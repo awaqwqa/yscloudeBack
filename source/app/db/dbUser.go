@@ -59,6 +59,5 @@ func (dm *DbManager) GetUserByUserName(name string) (user *model.User, err error
 func (dm *DbManager) GetUserKeys(userID int) []model.Key {
 	var user model.User
 	dm.dbEngine.Preload("UserKeys").First(&user, userID)
-
 	return user.UserKeys
 }

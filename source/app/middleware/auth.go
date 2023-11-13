@@ -56,13 +56,16 @@ func CheckAdmin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		value, ok := ctx.Get("username")
 		if !ok {
-
+			model.BackError(ctx, model.CodeUnknowError)
+			ctx.Abort()
 			return
 		}
-		userName := value
+		userName := value.(string)
 		if userName != "admin" {
-
+			model.BackError(ctx, model.CodeInvalidLevel)
+			ctx.Abort()
 			return
 		}
+
 	}
 }

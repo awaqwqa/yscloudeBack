@@ -64,7 +64,7 @@ var msgFlags = map[MyCode]string{
 }
 
 func BackError(ctx *gin.Context, code MyCode) {
-	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+	ctx.JSON(http.StatusOK, gin.H{
 		"code": code,
 		"msg":  code.Msg(),
 	})

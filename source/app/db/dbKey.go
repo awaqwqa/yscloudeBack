@@ -46,3 +46,6 @@ func (dm *DbManager) GetKeyByValue(value string) (*model.Key, error) {
 func (dm *DbManager) UpdateKeyStatus(key *model.Key, status bool) error {
 	return dm.dbEngine.Model(key).Update("Status", status).Error
 }
+func (dm *DbManager) UpdateKeyFileGroupName(key *model.Key, name string) error {
+	return dm.dbEngine.Model(key).Update("FileGroup", name).Error
+}

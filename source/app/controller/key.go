@@ -17,17 +17,23 @@ import (
 func RegisterKey(db *db.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var form struct {
-			Usage         string `json:"usage"`
-			Num           int    `json:"num"`
-			FileGroupName string `json:"file_group_name"`
+			Usage string `json:"usage"`
+			Num   int    `json:"num"`
 		}
 		code, err2 := model.BindStruct(ctx, &form)
 		if err2 != nil {
 			model.BackError(ctx, code)
 			return
 		}
-
-		key, err := model.NewKey(form.Usage, 1, form.FileGroupName)
+		if form.Usage != model.USAGE_LOAD && form.Usage != model.USAGE_REGISTER {
+			model.BackSuccess(ctx, model.CodeCodeTypeFalse)
+			return
+		}
+		if !(form.Num > 0) {
+			model.BackError(ctx, model.CodeUnknowError)
+			return
+		}
+		key, err := model.NewKey(form.Usage, form.Num, "")
 		if err != nil {
 			model.BackError(ctx, model.CodeCreateKeyFalse)
 			return
@@ -38,7 +44,12 @@ func RegisterKey(db *db.DbManager) gin.HandlerFunc {
 			model.BackError(ctx, model.CodeInvalidKey)
 			return
 		}
-		model.BackSuccess(ctx, key)
+		value, err := db.GetKeyByValue(key.Value)
+		if err != nil {
+			model.BackError(ctx, model.CodeGetKeyFalse)
+			return
+		}
+		model.BackSuccess(ctx, value)
 	}
 }
 

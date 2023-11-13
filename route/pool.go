@@ -1,10 +1,11 @@
 package route
 
 import (
-	"github.com/gin-gonic/gin"
 	"yscloudeBack/source/app/controller"
 	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 type handleFunction func(ctx *gin.Context)
@@ -29,11 +30,6 @@ type RegisterRoute struct {
 
 // Initialization is performed (执行) to connect the router to the handle function.
 func (rg *RegisterRoute) Register() {
-	// TODO : connect the routers based on base_path to the handlefunction
-	/*err := rg.RegisterMiddleware()
-	if err != nil {
-		return
-	}*/
 	baseGroup := rg.RegisterEngine.Group(BASE_PATH)
 	{
 		// 登录相关
@@ -77,6 +73,8 @@ func (rg *RegisterRoute) Register() {
 			userGroup.GET("/get_keys", controller.GetUserKeys(rg.Db))
 			userGroup.POST("/del_keys", controller.DelUserKey(rg.Db))
 			userGroup.POST("/add_key", controller.AddUserKey(rg.Db))
+			userGroup.GET("/get_file_name", controller.GetUserFileName(rg.Db))
+			userGroup.POST("/build_struct", controller.LoadHandler(rg.Db))
 		}
 	}
 
