@@ -5,7 +5,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"yscloudeBack/route"
-	"yscloudeBack/source/app/model"
+	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/utils"
 )
 
@@ -15,15 +15,16 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	dbManager := model.NewDbManager(Db)
+	dbManager := db.NewDbManager(Db)
 	err = dbManager.Init()
 	if err != nil {
+		utils.Error(err.Error())
 		return
 	}
 
-	cmdControler := utils.NewCmdController()
-	cmdControler.Init()
-	cmdControler.Listen()
+	cmdController := utils.NewCmdController()
+	cmdController.Init()
+	cmdController.Listen()
 
 	//loger
 	utils.NewLoggerManager("./log")

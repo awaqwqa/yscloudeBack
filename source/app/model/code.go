@@ -29,6 +29,11 @@ const (
 	CodeGetTokenFalse     MyCode = 1015
 	CodeCreateUserFalse   MyCode = 1016
 	CodeGetUserFalse      MyCode = 1017
+	CodeCreateKeyFalse    MyCode = 1018
+	CodeUpdateUserFalse   MyCode = 1019
+	CodeCodeTypeFalse     MyCode = 1020
+	CodeBindFalse         MyCode = 1021
+	CodeCodeIsUsed        MyCode = 1022
 )
 
 var msgFlags = map[MyCode]string{
@@ -47,10 +52,15 @@ var msgFlags = map[MyCode]string{
 	CodeInvalidKey:        "密钥无效",
 	CodeBindJsonFalse:     "绑定数据错误",
 	CodeInvalidLevel:      "越权处理",
-	CodeGetKeyFalse:       "删除key失败",
+	CodeGetKeyFalse:       "获取key失败",
 	CodeGetTokenFalse:     "获取token失败",
 	CodeCreateUserFalse:   "创建user失败",
 	CodeGetUserFalse:      "获取user失败",
+	CodeCreateKeyFalse:    "创建密钥失败",
+	CodeUpdateUserFalse:   "更新user失败",
+	CodeCodeTypeFalse:     "密钥类型错误",
+	CodeBindFalse:         "server解析失败",
+	CodeCodeIsUsed:        "密钥已被注册",
 }
 
 func BackError(ctx *gin.Context, code MyCode) {

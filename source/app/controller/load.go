@@ -2,10 +2,11 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/model"
 )
 
-func LoadHandler(db *model.DbManager) gin.HandlerFunc {
+func LoadHandler(db *db.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var lf *model.LoadForm
 		code, err := model.BindStruct(ctx, &lf)

@@ -6,6 +6,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"net/http"
 	"regexp"
+	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/middleware"
 	"yscloudeBack/source/app/model"
 	"yscloudeBack/source/app/utils"
@@ -80,7 +81,7 @@ func checkIsAllow(name string, passwd string, key string) (bool, model.MyCode) {
 	}
 	return true, 0
 }
-func GetUserName(rg *model.DbManager) gin.HandlerFunc {
+func GetUserName(rg *db.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		users, err := rg.GetUsers()
 		if err != nil {
@@ -95,7 +96,7 @@ func GetUserName(rg *model.DbManager) gin.HandlerFunc {
 		return
 	}
 }
-func GetUsers(rg *model.DbManager) gin.HandlerFunc {
+func GetUsers(rg *db.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		users, err := rg.GetUsers()
 		if err != nil {
@@ -107,7 +108,7 @@ func GetUsers(rg *model.DbManager) gin.HandlerFunc {
 		return
 	}
 }
-func GetUserInfo(db *model.DbManager) gin.HandlerFunc {
+func GetUserInfo(db *db.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.Query("token")
 		claim, err := utils.ParseToken(token)
@@ -131,7 +132,61 @@ func GetUserInfo(db *model.DbManager) gin.HandlerFunc {
 
 	}
 }
-func DelUserKey(manager *model.DbManager) gin.HandlerFunc {
+func AddUserKey(manager *db.DbManager) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var form struct {
+			Key       string `form:"key" binding:"required" json:"key"`
+			FileGroup string `form:"file_group" binding:"required" json:"file_group"`
+		}
+		code, err := model.BindStruct(ctx, &form)
+		if err != nil {
+			model.BackError(ctx, code)
+			return
+		}
+		userKey, err := manager.GetKeyByValue(form.Key)
+		if err != nil {
+			model.BackError(ctx, model.CodeGetKeyFalse)
+			return
+		}
+		// 检查userkey是否被使用
+		if userKey.Status {
+			model.BackError(ctx, model.CodeCodeIsUsed)
+			return
+		}
+		name, isExit := ctx.Get(middleware.ContextName)
+		if !isExit {
+			model.BackError(ctx, model.CodeUnknowError)
+			return
+		}
+		value, isOk := name.(string)
+		if !isOk {
+			model.BackError(ctx, model.CodeUnknowError)
+			return
+		}
+		user, err := manager.GetUserByUserName(value)
+		if err != nil {
+			model.BackError(ctx, model.CodeGetUserFalse)
+			return
+		}
+
+		err = manager.UpdateKeyStatus(userKey, true)
+		if err != nil {
+			model.BackError(ctx, model.CodeUnknowError)
+			return
+		}
+
+		// 绑定user和key
+		err = manager.AssociateKeyWithUser(user.ID, userKey.ID)
+		if err != nil {
+			utils.Error(err.Error())
+			model.BackError(ctx, model.CodeUnknowError)
+			return
+		}
+		model.BackSuccess(ctx, nil)
+	}
+}
+
+func DelUserKey(manager *db.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var form struct {
 			DelKey string `form:"del_key" binding:"required" json:"del_key"`
@@ -153,34 +208,48 @@ func DelUserKey(manager *model.DbManager) gin.HandlerFunc {
 				model.BackError(ctx, model.CodeGetUserFalse)
 				return
 			}
-			user.DelKeys(form.DelKey)
+
+			if !user.CheckLoadKey(form.DelKey) {
+				model.BackError(ctx, model.CodeInvalidKey)
+				return
+			}
 			model.BackSuccess(ctx, nil)
+			return
 		}
 		model.BackSuccess(ctx, model.CodeUnknowError)
 	}
 }
-func GetUserKeys(manager *model.DbManager) gin.HandlerFunc {
+func GetUserKeys(manager *db.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userName, isok := ctx.Get(middleware.ContextName)
 		if !isok {
 			model.BackError(ctx, model.CodeGetUserFalse)
 			return
 		}
-		if value, isok := userName.(string); isok {
-			user, err := manager.GetUserByUserName(value)
-			if err != nil {
-				model.BackError(ctx, model.CodeGetUserFalse)
-				return
-			}
-			model.BackSuccess(ctx, user.GetKeys())
+		value, isok := userName.(string)
+		if !isok {
+			model.BackError(ctx, model.CodeUnknowError)
 			return
 		}
-		model.BackError(ctx, model.CodeUnknowError)
+		user, err := manager.GetUserByUserName(value)
+		if err != nil {
+			model.BackError(ctx, model.CodeGetUserFalse)
+			return
+		}
+		
+		keys := user.GetLoadKeys()
+		if keys != nil {
+			model.BackSuccess(ctx, keys)
+			return
+		}
+		model.BackSuccess(ctx, keys)
+
+		return
 	}
 }
 
 // Register 用户注册
-func Register(manager *model.DbManager) gin.HandlerFunc {
+func Register(manager *db.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var rf *model.RegisterForm
 		code, err := model.BindStruct(ctx, &rf)
@@ -203,8 +272,13 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 			return
 		}
 		//检查key是否存在
-		if ok, _ := manager.CheckKey(key); !ok {
+		value, err := manager.GetKeyByValue(key)
+		if err != nil {
 			model.BackError(ctx, model.CodeInvalidKey)
+			return
+		}
+		if value.Usage != model.USAGE_REGISTER {
+			model.BackError(ctx, model.CodeCodeTypeFalse)
 			return
 		}
 		//删除key
@@ -238,7 +312,7 @@ func Register(manager *model.DbManager) gin.HandlerFunc {
 		return
 	}
 }
-func Login(manager *model.DbManager) gin.HandlerFunc {
+func Login(manager *db.DbManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var lf *model.LoginForm
 		if err := ctx.ShouldBindJSON(&lf); err != nil {

@@ -14,7 +14,7 @@ func BindStruct(ctx *gin.Context, st any) (MyCode, error) {
 			return CodeUnknowError, fmt.Errorf("Validation")
 		}
 		utils.Error(err.Error())
-		return CodeUnknowError, fmt.Errorf("unkonw")
+		return CodeBindFalse, fmt.Errorf("unkonw")
 	}
-	return CodeSuccess, nil
+	return CodeBindFalse, nil
 }

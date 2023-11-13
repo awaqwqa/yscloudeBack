@@ -1,9 +1,9 @@
 package model
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 	"sync"
-	"yscloudeBack/source/app/utils"
 )
 
 // 这里需要注意的是Password是以md5加密储存的方式
@@ -16,7 +16,7 @@ type User struct {
 	Key               string     `gorm:"not null;unique"`
 	QQNumber          int        `gorm:"not null;unique"`
 	mu                sync.Mutex `gorm:"-"`
-	UserKeys          []UserKey
+	UserKeys          []Key      `gorm:"foreignKey:UserID"`
 	FBToken           string
 	Structures        map[string]*Structure `gorm:"-"`
 	Token             string
@@ -24,15 +24,6 @@ type User struct {
 	ConsumedStructure int64                                `gorm:"-"`
 	RelatedInstances  map[string]*BuildTaskInfo            `gorm:"-"`
 	ShortHash         ShortUniqueHash                      `gorm:"-"`
-}
-type UserKey struct {
-	gorm.Model
-	UserID    uint
-	Value     string `json:"key"`
-	Usage     string `json:"usage"`
-	Num       int    `json:"num"`
-	Status    bool   `json:"isUsed"`
-	FileGroup string `json:"file_group"`
 }
 
 func NewUser(name string, pwd string, key string) *User {
@@ -42,53 +33,28 @@ func NewUser(name string, pwd string, key string) *User {
 		Password: pwd,
 		Key:      key,
 		mu:       sync.Mutex{},
-		UserKeys: []UserKey{},
+		UserKeys: []Key{},
 	}
 }
 func (u *User) Get() {
 
 }
-func (u *User) GetKeys() []UserKey {
+
+func (u *User) GetLoadKeys() []Key {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.Update()
+
 	return u.UserKeys
 }
-func (u *User) DelKeys(key string) bool {
-	u.mu.Lock()
-	defer u.mu.Unlock()
-	for k, v := range u.UserKeys {
-		if v.Value != key {
-			continue
+func (u *User) CheckLoadKey(key string) bool {
+	for _, v := range u.UserKeys {
+		fmt.Println(v.Value)
+		if v.Value == key {
+			return true
 		}
-
-		newSlice, err := utils.RemoveIndex(u.UserKeys, k)
-		if err != nil {
-			return false
-		}
-		u.UserKeys = newSlice
-		u.Upgrade()
-		return true
 	}
 	return false
 }
-
-// 从数据库获取最新数据
-func (u *User) Update() {
-
-}
-
-// 将内容更新的数据库
-func (u *User) Upgrade() {
-
-}
-
-/*
-func (u *User) UploadNewStructure(fileName string, fileData []byte) (err error) {
-
-}
-
-*/
 
 func (u *User) SetFBToken(fbToken string) {
 
