@@ -1,6 +1,7 @@
 package route
 
 import (
+	"yscloudeBack/source/app/cluster"
 	"yscloudeBack/source/app/controller"
 	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/middleware"
@@ -29,7 +30,7 @@ type RegisterRoute struct {
 }
 
 // Initialization is performed (执行) to connect the router to the handle function.
-func (rg *RegisterRoute) Register() {
+func (rg *RegisterRoute) Register(clur *cluster.ClusterRequester) {
 	baseGroup := rg.RegisterEngine.Group(BASE_PATH)
 	{
 		// 登录相关
@@ -52,12 +53,6 @@ func (rg *RegisterRoute) Register() {
 			adminGroup.GET("/get_keys", controller.GetKey(rg.Db))
 			adminGroup.POST("/del_key", controller.DelKey(rg.Db))
 		}
-		// 导入相关
-		LoadGroup := baseGroup.Group(LOADPATH)
-		LoadGroup.Use(middleware.JWTAuthMiddleware())
-		{
-			LoadGroup.POST(LOADSTAR, controller.LoadHandler(rg.Db))
-		}
 		// 文件相关
 		StructGroup := baseGroup.Group(STRUCTPATH)
 		StructGroup.Use(middleware.JWTAuthMiddleware())
@@ -74,16 +69,16 @@ func (rg *RegisterRoute) Register() {
 			userGroup.POST("/del_keys", controller.DelUserKey(rg.Db))
 			userGroup.POST("/add_key", controller.AddUserKey(rg.Db))
 			userGroup.GET("/get_file_name", controller.GetUserFileName(rg.Db))
-			userGroup.POST("/build_struct", controller.LoadHandler(rg.Db))
+			userGroup.POST("/build_structure", controller.LoadHandler(rg.Db, clur))
 		}
 	}
 
 }
 
 // router wouldnt be imported .The router package is used to initialize the router similar a controller
-func InitRoute(r *gin.Engine, manager *db.DbManager) {
+func InitRoute(r *gin.Engine, manager *db.DbManager, clur *cluster.ClusterRequester) {
 	//跨域插件
 	r.Use(Cors())
 	rg := NewRegisterRoute(r, manager)
-	rg.Register()
+	rg.Register(clur)
 }

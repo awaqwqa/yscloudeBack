@@ -34,6 +34,7 @@ const (
 	CodeCodeTypeFalse     MyCode = 1020
 	CodeBindFalse         MyCode = 1021
 	CodeCodeIsUsed        MyCode = 1022
+	CodeGetFbTokenFalse   MyCode = 1023
 )
 
 var msgFlags = map[MyCode]string{
@@ -61,6 +62,7 @@ var msgFlags = map[MyCode]string{
 	CodeCodeTypeFalse:     "密钥类型错误",
 	CodeBindFalse:         "server解析失败",
 	CodeCodeIsUsed:        "密钥已被注册",
+	CodeGetFbTokenFalse:   "fbToken未设置",
 }
 
 func BackError(ctx *gin.Context, code MyCode) {
