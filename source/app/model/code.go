@@ -10,6 +10,7 @@ type MyCode int64
 
 const (
 	CodeUnknowError     MyCode = 2401
+	CodeError           MyCode = 2000
 	CodeSuccess         MyCode = 1000
 	CodeInvalidParams   MyCode = 1001
 	CodeUserExist       MyCode = 1002
@@ -69,6 +70,12 @@ func BackError(ctx *gin.Context, code MyCode) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": code,
 		"msg":  code.Msg(),
+	})
+}
+func BackErrorByString(ctx *gin.Context, titleString string) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": CodeError,
+		"msg":  titleString,
 	})
 }
 func BackSuccess(ctx *gin.Context, body interface{}) {

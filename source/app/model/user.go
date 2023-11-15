@@ -3,6 +3,9 @@ package model
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"os"
+	"path"
+	"path/filepath"
 	"sync"
 )
 
@@ -76,6 +79,39 @@ func (a *User) GetAllStructureInfoCopy() (structures map[string]Structure, err e
 		structures[k] = *v
 	}
 	return
+}
+
+// 取得user的存文件的相对地址
+func (a *User) GetDirPath() string {
+	workDir, _ := os.Getwd()
+	return path.Join(workDir, a.UserName)
+}
+func (a *User) GetLoadPath(structName string) string {
+	return path.Join(a.GetDirPath(), structName)
+}
+func (a *User) ReadStructs() (structures []Structure, err error) {
+	f, err := os.Open(a.GetDirPath())
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	files, err := f.Readdir(-1)
+	if err != nil {
+		return
+	}
+
+	for _, file := range files {
+		if !file.IsDir() {
+			structures = append(structures, Structure{
+				FileName: file.Name(),
+				FileSize: file.Size(),
+				FileType: filepath.Ext(file.Name()),
+			})
+		}
+	}
+
+	return structures, nil
 }
 
 // 添加一个导入组

@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"net/http"
 	"yscloudeBack/route"
 	"yscloudeBack/source/app/cluster"
 	"yscloudeBack/source/app/db"
@@ -30,9 +32,14 @@ func main() {
 
 	//loger
 	utils.NewLoggerManager("./log")
+	//clusterRequester
+	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:3002/", http.Header{})
+	if err != nil {
+		panic(err)
+	}
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
-	client := cluster.NewClusterRequester()
+	client := cluster.NewClusterRequester(conn)
 	go func() {
 		err := client.InitReadLoop(ctx)
 		if err != nil {
