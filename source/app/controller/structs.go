@@ -9,7 +9,7 @@ import (
 	"yscloudeBack/source/app/model"
 )
 
-func (cm *ControllerMannager) GetStruct() gin.HandlerFunc {
+func (cm *ControllerMannager) GetStructs() gin.HandlerFunc {
 	db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		userName, isok := ctx.Get(middleware.ContextName)

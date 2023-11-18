@@ -7,6 +7,9 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
+	"io"
+	"os"
 )
 
 func Md5Encrypt(input string) string {
@@ -46,4 +49,25 @@ func GenerateRandomKey() (string, error) {
 
 	hashedBytes := hash.Sum(nil)
 	return hex.EncodeToString(hashedBytes)[32:], nil
+}
+
+// 生成file对应hash值
+func HashFileSHA256(filePath string) (string, error) {
+	// 打开文件
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	// 创建一个新的哈希对象
+	hasher := sha256.New()
+	// 使用文件内容更新哈希对象
+	if _, err := io.Copy(hasher, file); err != nil {
+		return "", err
+	}
+
+	// 计算并返回最终的哈希值
+	hash := hasher.Sum(nil)
+	return fmt.Sprintf("%x", hash), nil
 }

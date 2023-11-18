@@ -19,7 +19,7 @@ func (dm *DbManager) Init() error {
 	if dm.dbEngine == nil {
 		return fmt.Errorf("db is not exiting,maybe init() will help you")
 	}
-	err := dm.dbEngine.AutoMigrate(&model.User{}, model.Key{}, model.FbToken{})
+	err := dm.dbEngine.AutoMigrate(&model.User{}, model.Key{}, model.FbToken{}, model.Structure{})
 	if err != nil {
 		return err
 	}
@@ -51,10 +51,4 @@ func (dm *DbManager) AddData(data interface{}) error {
 }
 func (dm *DbManager) SaveData(data interface{}) error {
 	return dm.dbEngine.Save(&data).Error
-}
-
-// 关联 User 和 Key
-func (dm *DbManager) AssociateKeyWithUser(userID uint, keyID uint) error {
-	result := dm.dbEngine.Model(&model.Key{}).Where("id = ?", keyID).Update("user_id", userID)
-	return result.Error
 }

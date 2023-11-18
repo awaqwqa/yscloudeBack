@@ -3,6 +3,7 @@ package model
 import (
 	"crypto/rand"
 	"fmt"
+	"gorm.io/gorm"
 )
 
 const ShortUniqueHashLen = 16
@@ -58,6 +59,9 @@ type ProductionGroup struct {
 
 // 每个建筑的信息
 type Structure struct {
+	gorm.Model
+	//用于锁定id
+	StructureUserId uint
 	//建筑文件名字
 	FileName string
 	//建筑文件类型 BDX SCHEMATIC ....

@@ -57,8 +57,8 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 		StructGroup.Use(middleware.JWTAuthMiddleware())
 		rg.RegisterEngine.MaxMultipartMemory = 8 << 20 // 8 MiB
 		{
-			StructGroup.GET(GETSTRUCT, cm.GetStruct())
-			StructGroup.POST(UPLOADPATH, cm.UploadFile())
+			StructGroup.GET("/get_struts", cm.GetStructs())
+			StructGroup.POST("/upload_strut", cm.UploadFile())
 		}
 		// 用户信息相关
 		userGroup := baseGroup.Group("/user")
@@ -69,6 +69,7 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			userGroup.POST("/add_key", cm.AddUserKey())
 			userGroup.GET("/get_file_name", cm.GetUserFileName())
 			userGroup.POST("/build_structure", cm.LoadHandler())
+
 		}
 	}
 

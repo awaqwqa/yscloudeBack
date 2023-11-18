@@ -47,7 +47,7 @@ func (dm *DbManager) CheckErrorUserNotFound(err error) bool {
 }
 
 func (dm *DbManager) GetUserByUserName(name string) (user *model.User, err error) {
-	result := dm.dbEngine.Preload("UserKeys").Where("user_name = ?", name).First(&user)
+	result := dm.dbEngine.Preload("UserKeys").Preload("StructureUserId").Where("user_name = ?", name).First(&user)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("user not found")
@@ -60,4 +60,16 @@ func (dm *DbManager) GetUserKeys(userID int) []model.Key {
 	var user model.User
 	dm.dbEngine.Preload("UserKeys").First(&user, userID)
 	return user.UserKeys
+}
+
+// 关联 User 和 Key
+func (dm *DbManager) AssociateKeyWithUser(userID uint, keyID uint) error {
+	result := dm.dbEngine.Model(&model.Key{}).Where("id = ?", keyID).Update("user_id", userID)
+	return result.Error
+}
+
+// 关联 User 和 structure
+func (dm *DbManager) AssociateStuctureWithUser(userID uint, structureID uint) error {
+	result := dm.dbEngine.Model(&model.Structure{}).Where("id = ?", structureID).Update("structure_user_id", userID)
+	return result.Error
 }

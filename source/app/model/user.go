@@ -21,7 +21,7 @@ type User struct {
 	mu                sync.Mutex `gorm:"-"`
 	UserKeys          []Key      `gorm:"foreignKey:UserID"`
 	FBToken           string
-	Structures        map[string]*Structure `gorm:"-"`
+	Structures        []Structure `gorm:"foreignKey:StructureUserId"`
 	Token             string
 	ProductionGroups  map[ShortUniqueHash]*ProductionGroup `gorm:"-"`
 	ConsumedStructure int64                                `gorm:"-"`
@@ -71,12 +71,12 @@ func (a *User) GetFBToken() string {
 }
 
 // 取得所有的建筑信息备份
-func (a *User) GetAllStructureInfoCopy() (structures map[string]Structure, err error) {
+func (a *User) GetAllStructureInfoCopy() (structures []Structure, err error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	structures = make(map[string]Structure)
-	for k, v := range a.Structures {
-		structures[k] = *v
+	structures = []Structure{}
+	for _, v := range a.Structures {
+		structures = append(structures, v)
 	}
 	return
 }
