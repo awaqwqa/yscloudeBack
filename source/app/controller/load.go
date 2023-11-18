@@ -5,15 +5,15 @@ import (
 	"os"
 	"path"
 	"time"
-	"yscloudeBack/source/app/cluster"
-	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/middleware"
 	"yscloudeBack/source/app/model"
 
 	"github.com/gin-gonic/gin"
 )
 
-func LoadHandler(db *db.DbManager, client *cluster.ClusterRequester) gin.HandlerFunc {
+func (cm *ControllerMannager) LoadHandler() gin.HandlerFunc {
+	db := cm.GetDbManager()
+	client := cm.GetCluster()
 	return func(ctx *gin.Context) {
 		//绑定参数
 		option := &model.BuildOption{}
@@ -49,6 +49,7 @@ func LoadHandler(db *db.DbManager, client *cluster.ClusterRequester) gin.Handler
 		//文件地址
 		workDir, _ := os.Getwd()
 		wrapperExec := path.Join(workDir, "builder_wrapper")
+		// 转化目录名字
 		convertDir := path.Join(workDir, "converted")
 		compileBuildExecArgs := func(option *model.BuildOption, fbToken string) (args []string, err error) {
 			if fbToken == "" {

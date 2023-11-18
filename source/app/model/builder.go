@@ -22,14 +22,22 @@ type BuildOption struct {
 		Type  string `form:"type"`
 		Token string `form:"token"`
 	} `form:"auth"`
-	TaskName             string `form:"taskName"`
-	OptionalFBToken      string `form:"optionalFBToken"`
-	StructureName        string `form:"structureName"`
-	RentalServerCode     string `form:"rentalServerCode"`
+	// 任务名字
+	TaskName string `form:"taskName"`
+	// 操作的fbToken
+	OptionalFBToken string `form:"optionalFBToken"`
+	// 建筑地址
+	StructureName string `form:"structureName"`
+	// 服务器code
+	RentalServerCode string `form:"rentalServerCode"`
+	// 服务器密码
 	RentalServerPassword string `form:"rentalServerPassword"`
-	PosX                 int    `form:"posX"`
-	PosY                 int    `form:"posY"`
-	PosZ                 int    `form:"posZ"`
+	// x
+	PosX int `form:"posX"`
+	// y
+	PosY int `form:"posY"`
+	// z
+	PosZ int `form:"posZ"`
 }
 
 // 任务栏

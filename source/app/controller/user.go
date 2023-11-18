@@ -6,7 +6,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"net/http"
 	"regexp"
-	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/middleware"
 	"yscloudeBack/source/app/model"
 	"yscloudeBack/source/app/utils"
@@ -81,7 +80,8 @@ func checkIsAllow(name string, passwd string, key string) (bool, model.MyCode) {
 	}
 	return true, 0
 }
-func GetUserName(rg *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) GetUserName() gin.HandlerFunc {
+	rg := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		users, err := rg.GetUsers()
 		if err != nil {
@@ -96,7 +96,8 @@ func GetUserName(rg *db.DbManager) gin.HandlerFunc {
 		return
 	}
 }
-func GetUsers(rg *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) GetUsers() gin.HandlerFunc {
+	rg := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		users, err := rg.GetUsers()
 		if err != nil {
@@ -108,7 +109,8 @@ func GetUsers(rg *db.DbManager) gin.HandlerFunc {
 		return
 	}
 }
-func GetUserInfo(db *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) GetUserInfo() gin.HandlerFunc {
+	db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		token := ctx.Query("token")
 		claim, err := utils.ParseToken(token)
@@ -136,12 +138,17 @@ func GetUserInfo(db *db.DbManager) gin.HandlerFunc {
 
 	}
 }
-func GetUserFileName(manager *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) GetUserFileName() gin.HandlerFunc {
+	manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {
+		if manager == nil {
+
+		}
 		model.BackSuccess(ctx, []string{"大型建筑", "测试建筑"})
 	}
 }
-func AddUserKey(manager *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) AddUserKey() gin.HandlerFunc {
+	manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		var form struct {
 			Key       string `form:"key" binding:"required" json:"key"`
@@ -206,7 +213,8 @@ func AddUserKey(manager *db.DbManager) gin.HandlerFunc {
 	}
 }
 
-func DelUserKey(manager *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) DelUserKey() gin.HandlerFunc {
+	manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		var form struct {
 			DelKey string `form:"del_key" binding:"required" json:"del_key"`
@@ -243,7 +251,8 @@ func DelUserKey(manager *db.DbManager) gin.HandlerFunc {
 		model.BackSuccess(ctx, model.CodeUnknowError)
 	}
 }
-func GetUserKeys(manager *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) GetUserKeys() gin.HandlerFunc {
+	manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		userName, isok := ctx.Get(middleware.ContextName)
 		if !isok {
@@ -273,7 +282,8 @@ func GetUserKeys(manager *db.DbManager) gin.HandlerFunc {
 }
 
 // Register 用户注册
-func Register(manager *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) Register() gin.HandlerFunc {
+	manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		var rf *model.RegisterForm
 		code, err := model.BindStruct(ctx, &rf)
@@ -336,7 +346,8 @@ func Register(manager *db.DbManager) gin.HandlerFunc {
 		return
 	}
 }
-func Login(manager *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) Login() gin.HandlerFunc {
+	manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		var lf *model.LoginForm
 		if err := ctx.ShouldBindJSON(&lf); err != nil {

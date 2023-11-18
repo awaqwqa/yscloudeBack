@@ -1,9 +1,7 @@
 package route
 
 import (
-	"yscloudeBack/source/app/cluster"
 	"yscloudeBack/source/app/controller"
-	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -17,29 +15,27 @@ func getHandleAndRouter() map[string]handleFunction {
 }
 */
 
-func NewRegisterRoute(rg *gin.Engine, manager *db.DbManager) *RegisterRoute {
+func NewRegisterRoute(rg *gin.Engine) *RegisterRoute {
 	return &RegisterRoute{
 		RegisterEngine: rg,
-		Db:             manager,
 	}
 }
 
 type RegisterRoute struct {
 	RegisterEngine *gin.Engine
-	Db             *db.DbManager
 }
 
 // Initialization is performed (执行) to connect the router to the handle function.
-func (rg *RegisterRoute) Register(clur *cluster.ClusterRequester) {
+func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 	baseGroup := rg.RegisterEngine.Group(BASE_PATH)
 	{
 		// 登录相关
 		logGroup := baseGroup.Group(LOGPATH)
 		{
 			// Register
-			logGroup.POST(getRegisterUrl(), controller.Register(rg.Db))
-			logGroup.POST("/login", controller.Login(rg.Db))
-			logGroup.GET("/get_user_info", controller.GetUserInfo(rg.Db))
+			logGroup.POST(getRegisterUrl(), cm.Register())
+			logGroup.POST("/login", cm.Login())
+			logGroup.GET("/get_user_info", cm.GetUserInfo())
 			//logGroup.POST(getLogoutUrl())
 		}
 		// 管理员权限相关
@@ -47,38 +43,41 @@ func (rg *RegisterRoute) Register(clur *cluster.ClusterRequester) {
 		adminGroup.Use(middleware.JWTAuthMiddleware())
 		adminGroup.Use(middleware.CheckAdmin())
 		{
-			adminGroup.GET("/get_user_name", controller.GetUserName(rg.Db))
-			adminGroup.GET("/get_users", controller.GetUsers(rg.Db))
-			adminGroup.POST("/register_key", controller.RegisterKey(rg.Db))
-			adminGroup.GET("/get_keys", controller.GetKey(rg.Db))
-			adminGroup.POST("/del_key", controller.DelKey(rg.Db))
+			adminGroup.GET("/get_user_name", cm.GetUserName())
+			adminGroup.GET("/get_users", cm.GetUsers())
+			adminGroup.POST("/register_key", cm.RegisterKey())
+			adminGroup.GET("/get_keys", cm.GetKey())
+			adminGroup.POST("/del_key", cm.DelKey())
+			adminGroup.POST("/set_fbtoken", cm.SetFbToken())
+			adminGroup.GET("/get_fbtokens", cm.GetFbTokens())
+			adminGroup.POST("/del_fbtoken", cm.DelFbTokens())
 		}
 		// 文件相关
 		StructGroup := baseGroup.Group(STRUCTPATH)
 		StructGroup.Use(middleware.JWTAuthMiddleware())
 		rg.RegisterEngine.MaxMultipartMemory = 8 << 20 // 8 MiB
 		{
-			StructGroup.GET(GETSTRUCT, controller.GetStruct(rg.Db))
-			StructGroup.POST(UPLOADPATH, controller.UploadFile(rg.Db))
+			StructGroup.GET(GETSTRUCT, cm.GetStruct())
+			StructGroup.POST(UPLOADPATH, cm.UploadFile())
 		}
 		// 用户信息相关
 		userGroup := baseGroup.Group("/user")
 		userGroup.Use(middleware.JWTAuthMiddleware())
 		{
-			userGroup.GET("/get_keys", controller.GetUserKeys(rg.Db))
-			userGroup.POST("/del_keys", controller.DelUserKey(rg.Db))
-			userGroup.POST("/add_key", controller.AddUserKey(rg.Db))
-			userGroup.GET("/get_file_name", controller.GetUserFileName(rg.Db))
-			userGroup.POST("/build_structure", controller.LoadHandler(rg.Db, clur))
+			userGroup.GET("/get_keys", cm.GetUserKeys())
+			userGroup.POST("/del_keys", cm.DelUserKey())
+			userGroup.POST("/add_key", cm.AddUserKey())
+			userGroup.GET("/get_file_name", cm.GetUserFileName())
+			userGroup.POST("/build_structure", cm.LoadHandler())
 		}
 	}
 
 }
 
 // router wouldnt be imported .The router package is used to initialize the router similar a controller
-func InitRoute(r *gin.Engine, manager *db.DbManager, clur *cluster.ClusterRequester) {
+func InitRoute(r *gin.Engine, cm *controller.ControllerMannager) {
 	//跨域插件
 	r.Use(Cors())
-	rg := NewRegisterRoute(r, manager)
-	rg.Register(clur)
+	rg := NewRegisterRoute(r)
+	rg.Register(cm)
 }

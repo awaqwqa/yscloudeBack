@@ -7,25 +7,37 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"net/http"
 )
 
 type RespCb func(msg map[string]interface{})
 type StreamCb func(msg string) error
 
 type ClusterRequester struct {
-	conn            *websocket.Conn
+	conn *websocket.Conn
+	// 连接是否正常
+	ConnectStatus   bool
 	cbs             sync_wrapper.SyncMap[RespCb]
 	streamListeners sync_wrapper.SyncMap[StreamCb]
 }
 
-func NewClusterRequester(conn *websocket.Conn) *ClusterRequester {
+func NewClusterRequester() *ClusterRequester {
 	r := &ClusterRequester{
-		conn:            conn,
 		cbs:             sync_wrapper.SyncMap[RespCb]{},
 		streamListeners: sync_wrapper.SyncMap[StreamCb]{},
+		ConnectStatus:   false,
 	}
 
 	return r
+}
+func (cr *ClusterRequester) Init(host string) error {
+	conn, _, err := websocket.DefaultDialer.Dial(host, http.Header{})
+	if err != nil {
+		return err
+	}
+	cr.conn = conn
+	cr.ConnectStatus = true
+	return nil
 }
 
 type InstanceDetail struct {
@@ -146,13 +158,16 @@ func (r *ClusterRequester) InitReadLoop(ctx context.Context) (err error) {
 		var msg map[string]interface{}
 		_, data, err = r.conn.ReadMessage()
 		if err != nil {
+			r.ConnectStatus = false
 			return
 		}
 		if ctx.Err() != nil {
+			r.ConnectStatus = false
 			return err
 		}
 		err = json.Unmarshal(data, &msg)
 		if err != nil {
+			r.ConnectStatus = false
 			return err
 		}
 		if opID, found := msg["op_id"]; found {

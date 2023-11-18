@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/model"
 )
 
@@ -14,7 +13,8 @@ import (
 //		"num":1,
 //		"fileGroupName":""
 //	}
-func RegisterKey(db *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) RegisterKey() gin.HandlerFunc {
+	db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		var form struct {
 			Usage string `json:"usage"`
@@ -54,7 +54,8 @@ func RegisterKey(db *db.DbManager) gin.HandlerFunc {
 }
 
 // 获取keys
-func GetKey(db *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) GetKey() gin.HandlerFunc {
+	db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		keys, err := db.GetAllKeys()
 		if err != nil {
@@ -69,7 +70,9 @@ func GetKey(db *db.DbManager) gin.HandlerFunc {
 		return
 	}
 }
-func DelKey(db *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) DelKey() gin.HandlerFunc {
+
+	db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		var form struct {
 			DelKey string `form:"del_key" binding:"required" json:"del_key"`

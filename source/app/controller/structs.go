@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
-	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/middleware"
 	"yscloudeBack/source/app/model"
 )
 
-func GetStruct(db *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) GetStruct() gin.HandlerFunc {
+	db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		userName, isok := ctx.Get(middleware.ContextName)
 		if !isok {
@@ -39,8 +39,12 @@ func GetStruct(db *db.DbManager) gin.HandlerFunc {
 		})
 	}
 }
-func UploadFile(db *db.DbManager) gin.HandlerFunc {
+func (cm *ControllerMannager) UploadFile() gin.HandlerFunc {
+	db := cm.GetDbManager()
 	return func(c *gin.Context) {
+		if db == nil {
+		}
+
 		file, err := c.FormFile("file")
 		if err != nil {
 			c.String(http.StatusBadRequest, "Bad request: %s", err.Error())
