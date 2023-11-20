@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"yscloudeBack/source/app/model"
+	"yscloudeBack/source/app/utils"
 )
 
 type DbManager struct {
@@ -19,8 +20,9 @@ func (dm *DbManager) Init() error {
 	if dm.dbEngine == nil {
 		return fmt.Errorf("db is not exiting,maybe init() will help you")
 	}
-	err := dm.dbEngine.AutoMigrate(&model.User{}, model.Key{}, model.FbToken{}, model.Structure{})
+	err := dm.dbEngine.AutoMigrate(&model.User{}, &model.Key{}, &model.FbToken{}, &model.Structure{})
 	if err != nil {
+		utils.Error(err.Error())
 		return err
 	}
 	return nil
@@ -33,7 +35,6 @@ func (dm *DbManager) UpdateByConditions(model interface{}, conditions map[string
 	if dm.dbEngine == nil {
 		return fmt.Errorf("db is not existing")
 	}
-
 	// 使用Where方法添加条件，然后使用Updates方法更新记录。
 	result := dm.dbEngine.Where(conditions).Updates(model)
 	if result.Error != nil {

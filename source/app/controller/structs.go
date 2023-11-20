@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"path/filepath"
@@ -42,9 +43,16 @@ func (cm *ControllerMannager) GetStructs() gin.HandlerFunc {
 func (cm *ControllerMannager) UploadFile() gin.HandlerFunc {
 	db := cm.GetDbManager()
 	return func(c *gin.Context) {
-		if db == nil {
+		name, err := middleware.GetContextName(c)
+		if err != nil {
+			model.BackErrorByString(c, err.Error())
+			return
 		}
-
+		user, err := db.GetUserByUserName(name)
+		if err != nil {
+			model.BackError(c, model.CodeGetUserFalse)
+			return
+		}
 		file, err := c.FormFile("file")
 		if err != nil {
 			c.String(http.StatusBadRequest, "Bad request: %s", err.Error())
@@ -65,9 +73,39 @@ func (cm *ControllerMannager) UploadFile() gin.HandlerFunc {
 		}
 
 		// 处理文件（例如保存到磁盘）
-		// ...
-
+		fileData := make([]byte, file.Size)
+		src, err := file.Open()
+		if err != nil {
+			model.BackErrorByString(c, "cant get file ")
+			return
+		}
+		defer src.Close()
+		_, err = src.Read(fileData)
+		if err != nil {
+			model.BackErrorByString(c, err.Error())
+			return
+		}
+		structure, err := user.NewUserStructure(file.Filename, fileData)
+		if err != nil {
+			model.BackErrorByString(c, "cant upload file into dir")
+			return
+		}
+		err = db.AddStructure(structure)
+		if err != nil {
+			model.BackErrorByString(c, "cant upload structure into db")
+			return
+		}
+		dbStructure, err := db.GetStructureByHash(structure.FileHash)
+		if err != nil {
+			model.BackErrorByString(c, "bind structure false")
+			return
+		}
+		err = db.AssociateStuctureWithUser(user.ID, dbStructure.ID)
+		if err != nil {
+			model.BackErrorByString(c, "bind structure false")
+			return
+		}
+		model.BackSuccess(c, fmt.Sprintf("File %s uploaded successfully with size of %d.", file.Filename, file.Size))
 		// 返回成功响应
-		c.String(http.StatusOK, "File %s uploaded successfully with size of %d.", file.Filename, file.Size)
 	}
 }

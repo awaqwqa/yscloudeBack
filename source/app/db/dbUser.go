@@ -47,7 +47,7 @@ func (dm *DbManager) CheckErrorUserNotFound(err error) bool {
 }
 
 func (dm *DbManager) GetUserByUserName(name string) (user *model.User, err error) {
-	result := dm.dbEngine.Preload("UserKeys").Preload("StructureUserId").Where("user_name = ?", name).First(&user)
+	result := dm.dbEngine.Preload("UserKeys").Preload("Structures").Where("user_name = ?", name).First(&user)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("user not found")

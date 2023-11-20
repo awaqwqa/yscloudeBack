@@ -66,8 +66,8 @@ type Structure struct {
 	FileName string
 	//建筑文件类型 BDX SCHEMATIC ....
 	FileType string
-	//建筑文件的hash值
-	FileHash string
+	//userName + 建筑文件的hash值
+	FileHash string `gorm:"primary_key"`
 	//建筑文件的大小
 	FileSize int64
 	//更新日期

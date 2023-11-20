@@ -48,13 +48,13 @@ func main() {
 		utils.Error(err.Error())
 		return
 	}
-	go func() {
-		err := client.InitReadLoop(ctx)
-		if err != nil {
-			cancelFn()
-			utils.Error(err.Error())
-		}
-	}()
+	//go func() {
+	//	err := client.InitReadLoop(ctx)
+	//	if err != nil {
+	//		cancelFn()
+	//		utils.Error(err.Error())
+	//	}
+	//}()
 
 	//cmdController := utils.NewCmdController()
 	//cmdController.Init()

@@ -1,12 +1,15 @@
 package model
 
 import (
+	"crypto/md5"
 	"fmt"
 	"gorm.io/gorm"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 // 这里需要注意的是Password是以md5加密储存的方式
@@ -68,6 +71,39 @@ func (a *User) GetFBToken() string {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return a.FBToken
+}
+
+func (a *User) NewUserStructure(fileName string, fileData []byte) (structure Structure, err error) {
+	// overwrite if exists
+	// check file type: BDX if .bdx file, Schem if .schem file, schematic if .schematic file
+	// any other file type will be rejected
+	fileType := "unknown"
+	if path.Ext(fileName) == ".bdx" {
+		fileType = "BDX"
+	} else if path.Ext(fileName) == ".schem" {
+		fileType = "Schem"
+	} else if path.Ext(fileName) == ".schematic" {
+		fileType = "schematic"
+	} else if path.Ext(fileName) == ".mcworld" {
+		fileType = "mcworld"
+	} else {
+		return structure, fmt.Errorf("file type not supported")
+	}
+
+	// save file
+	filePath := a.GetLoadPath(fileName)
+	if err = ioutil.WriteFile(filePath, fileData, 0755); err != nil {
+		return
+	}
+
+	structure = Structure{
+		FileName:   fileName,
+		FileType:   fileType,
+		FileHash:   GetFileHash(a.UserName, fileData),
+		FileSize:   int64(len(fileData)),
+		UploadDate: GetNowString(),
+	}
+	return
 }
 
 // 取得所有的建筑信息备份
@@ -147,3 +183,10 @@ func (a *User) AddProductionGroup(name string) (err error) {
 }
 
 */
+func GetFileHash(name string, data []byte) string {
+	return fmt.Sprintf("%x%x", name, md5.Sum(data))
+}
+func GetNowString() string {
+	nt := time.Now()
+	return fmt.Sprintf("%d-%02d-%02d", nt.Year(), nt.Month(), nt.Day())
+}

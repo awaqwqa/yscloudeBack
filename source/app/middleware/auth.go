@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -67,5 +68,18 @@ func CheckAdmin() gin.HandlerFunc {
 			return
 		}
 
+	}
+}
+func GetContextName(ctx *gin.Context) (string, error) {
+	value, isFind := ctx.Get(ContextName)
+	if !isFind {
+		return "", fmt.Errorf("cant find userName")
+	}
+	switch value.(type) {
+	case string:
+		name := value.(string)
+		return name, nil
+	default:
+		return "", fmt.Errorf("cant find userName")
 	}
 }

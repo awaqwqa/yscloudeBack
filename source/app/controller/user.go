@@ -138,13 +138,28 @@ func (cm *ControllerMannager) GetUserInfo() gin.HandlerFunc {
 
 	}
 }
+
+// 获取userFileName
 func (cm *ControllerMannager) GetUserFileName() gin.HandlerFunc {
 	manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {
-		if manager == nil {
-
+		name, err := middleware.GetContextName(ctx)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
 		}
-		model.BackSuccess(ctx, []string{"大型建筑", "测试建筑"})
+		user, err := manager.GetUserByUserName(name)
+		if err != nil {
+			model.BackError(ctx, model.CodeGetUserFalse)
+			return
+		}
+		infoCopys, err := user.GetAllStructureInfoCopy()
+		if err != nil {
+			model.BackErrorByString(ctx, "cant get structures")
+			return
+		}
+		model.BackSuccess(ctx, infoCopys)
+		return
 	}
 }
 func (cm *ControllerMannager) AddUserKey() gin.HandlerFunc {
