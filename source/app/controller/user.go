@@ -13,24 +13,24 @@ import (
 
 func checkName(name string) (bool, error) {
 	// 检查长度
-	if len(name) < 3 || len(name) > 8 {
-		return false, fmt.Errorf("name length must be between 3 and 8")
+	if len(name) < 3 || len(name) > 16 {
+		return false, fmt.Errorf("name length must be between 3 and 16")
 	}
 
-	// 检查是否符合命名规范（这里假设名字只能包含字母）
-	matched, err := regexp.MatchString("^[A-Za-z]+$", name)
+	// 检查是否符合命名规范（包含字母、中文字符和下划线）
+	matched, err := regexp.MatchString("^[A-Za-z\\p{Han}_]+$", name)
 	if err != nil {
 		return false, err
 	}
 	if !matched {
-		return false, fmt.Errorf("name must only contain letters")
+		return false, fmt.Errorf("name must only contain letters, Chinese characters, and underscores")
 	}
 	return true, nil
 }
 
 func checkPasswd(password string) error {
 	if len(password) < 8 || len(password) > 20 {
-		return fmt.Errorf("password must be between 8 and 16 characters")
+		return fmt.Errorf("password must be between 8 and 20 characters")
 	}
 	// 检查密码是否包含至少一个数字
 	if matched, _ := regexp.MatchString(`[0-9]`, password); !matched {
@@ -119,7 +119,7 @@ func (cm *ControllerMannager) GetUserInfo() gin.HandlerFunc {
 			return
 		}
 		userName := claim.UserName
-		_, err = db.GetUserByUserName(userName)
+		user, err := db.GetUserByUserName(userName)
 		if err != nil {
 			model.BackError(ctx, model.CodeGetUserFalse)
 			return
@@ -131,6 +131,8 @@ func (cm *ControllerMannager) GetUserInfo() gin.HandlerFunc {
 		model.BackSuccess(ctx, gin.H{
 			"roles":        roles,
 			"name":         userName,
+			"balance":      user.Balance,
+			"qq":           user.QQNumber,
 			"avatar":       "nil",
 			"introduction": "nil",
 		})

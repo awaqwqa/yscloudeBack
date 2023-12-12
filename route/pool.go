@@ -29,6 +29,10 @@ type RegisterRoute struct {
 func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 	baseGroup := rg.RegisterEngine.Group(BASE_PATH)
 	{
+		noticeGroup := baseGroup.Group("/notice")
+		{
+			noticeGroup.GET("/get_value", cm.GetNoticeValue())
+		}
 		// 登录相关
 		logGroup := baseGroup.Group(LOGPATH)
 		{
@@ -38,6 +42,7 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			logGroup.GET("/get_user_info", cm.GetUserInfo())
 			//logGroup.POST(getLogoutUrl())
 		}
+
 		// 管理员权限相关
 		adminGroup := baseGroup.Group("/admin")
 		adminGroup.Use(middleware.JWTAuthMiddleware())
@@ -51,6 +56,7 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			adminGroup.POST("/set_fbtoken", cm.SetFbToken())
 			adminGroup.GET("/get_fbtokens", cm.GetFbTokens())
 			adminGroup.POST("/del_fbtoken", cm.DelFbTokens())
+			adminGroup.POST("/update_notice", cm.UpdateNotice())
 		}
 		// 文件相关
 		StructGroup := baseGroup.Group(STRUCTPATH)

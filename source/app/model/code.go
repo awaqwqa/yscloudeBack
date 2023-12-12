@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"yscloudeBack/source/app/utils"
 )
 
 // 定义业务的状态码
@@ -67,12 +68,14 @@ var msgFlags = map[MyCode]string{
 }
 
 func BackError(ctx *gin.Context, code MyCode) {
+	utils.Error(code.Msg())
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": code,
 		"msg":  code.Msg(),
 	})
 }
 func BackErrorByString(ctx *gin.Context, titleString string) {
+	utils.Error(titleString)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": CodeError,
 		"msg":  titleString,

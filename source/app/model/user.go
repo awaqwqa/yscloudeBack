@@ -17,14 +17,16 @@ type User struct {
 	gorm.Model
 	UserName string `gorm:"not null;unique;size:255"`
 	//密码 md5(Password)
-	Password          string     `gorm:"not null"`
-	Mobile            string     `gorm:"not null;unique"`
-	Key               string     `gorm:"not null;unique"`
-	QQNumber          int        `gorm:"not null;unique"`
-	mu                sync.Mutex `gorm:"-"`
-	UserKeys          []Key      `gorm:"foreignKey:UserID"`
-	FBToken           string
-	Structures        []Structure `gorm:"foreignKey:StructureUserId"`
+	Password   string     `gorm:"not null"`
+	Mobile     string     `gorm:"not null;unique"`
+	Key        string     `gorm:"not null;unique"`
+	QQNumber   int        `gorm:"not null;unique"`
+	mu         sync.Mutex `gorm:"-"`
+	UserKeys   []Key      `gorm:"foreignKey:UserID"`
+	FBToken    string
+	Structures []Structure `gorm:"foreignKey:StructureUserId"`
+	// 余额值
+	Balance           int `gorm:"balance"`
 	Token             string
 	ProductionGroups  map[ShortUniqueHash]*ProductionGroup `gorm:"-"`
 	ConsumedStructure int64                                `gorm:"-"`
