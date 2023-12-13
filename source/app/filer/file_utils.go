@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"yscloudeBack/source/app/utils"
 )
 
 // 判断路径是绝对地址还是相对地址
@@ -21,14 +22,8 @@ func IsNameValid(name string) bool {
 	return regex.MatchString(name)
 }
 
-// 获取当前文件的绝对地址
 func GetAbsolutePath() (string, error) {
-	exePath, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
-
-	absPath, err := filepath.Abs(exePath)
+	absPath, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
@@ -62,18 +57,21 @@ func WriteToFile(filePath string, content []byte) error {
 }
 
 // 判断指定路径是否合法
-func IsPathValid(path string) bool {
-	_, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false // 路径不存在
-		}
+func IsPathValid(name string) bool {
+	// 检查名字是否为空
+	if name == "" {
+		return false
 	}
-	return true
+
+	// 使用正则表达式检查名字的格式
+	// 这里使用的是 Windows 文件/文件夹命名规范的正则表达式
+	regex := regexp.MustCompile(`^[^\x00-\x1F<>:"/\\|?*]+$`)
+	return regex.MatchString(name)
 }
 
 // 获取指定文件夹下的信息
 func GetFolderInfo(folderPath string) ([]os.FileInfo, error) {
+	utils.Info("get folder info : folderPath >> %v", folderPath)
 	fileInfo, err := ioutil.ReadDir(folderPath)
 	if err != nil {
 		return nil, err

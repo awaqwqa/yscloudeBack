@@ -25,13 +25,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	path, err := filer.GetAbsolutePath()
-	if err != nil {
-		panic(err)
-		return
-	}
 	//这里塞一个相对地址
-	filer := filer.NewFiler(path)
+	filer := filer.NewFiler("./user_file")
 	//clusterRequester
 	// 这里由controllerManager负责调控 所以defer contollerManager.close()会关闭所有的线程
 	ctx, cancelFn := context.WithCancel(context.Background())

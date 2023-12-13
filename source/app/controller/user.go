@@ -141,10 +141,97 @@ func (cm *ControllerMannager) GetUserInfo() gin.HandlerFunc {
 
 	}
 }
+func (cm *ControllerMannager) DeleteFileGroup() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		name, err := middleware.GetContextName(ctx)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		var form struct {
+			FileGroupName string `json:"file_group_name"`
+		}
+		code, err := model.BindStruct(ctx, &form)
+		if err != nil {
+			model.BackSuccess(ctx, code)
+			return
+		}
+		if form.FileGroupName == "" {
+			model.BackErrorByString(ctx, "cant delect an empty dir")
+			return
+		}
+		err = cm.filer.DelectFileGroup(name, form.FileGroupName)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		model.BackSuccess(ctx, fmt.Sprintf("delect %v file group success", form.FileGroupName))
+	}
+}
+
+// 添加文件组
+func (cm *ControllerMannager) AddFileGroup() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var form struct {
+			FileGroupName string `json:"file_group_name"`
+		}
+		code, err := model.BindStruct(ctx, &form)
+		if err != nil {
+			model.BackError(ctx, code)
+			return
+		}
+		name, err := middleware.GetContextName(ctx)
+		if err != nil {
+			return
+		}
+		groupsNames, err := cm.filer.GetFileGroupsName(name)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		isok := false
+		for _, v := range groupsNames {
+			if string(v) == form.FileGroupName {
+				isok = true
+			}
+		}
+		if isok {
+			model.BackErrorByString(ctx, fmt.Sprintf("allready exit this file_group"))
+			return
+		}
+		err = cm.filer.CreateFileGroupDir(name, form.FileGroupName)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		model.BackSuccess(ctx, fmt.Sprintf("create a file_group success"))
+	}
+
+}
+func (cm *ControllerMannager) GetFileGroups() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		name, err := middleware.GetContextName(ctx)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		groupsNames, err := cm.filer.GetFileGroupsName(name)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		model.BackSuccess(ctx, groupsNames)
+	}
+
+}
 func (cm *ControllerMannager) GetFilesInfo() gin.HandlerFunc {
 	//manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {
 		fileGroupName := ctx.Request.URL.Query().Get("file_group_name")
+		if fileGroupName == "" {
+			model.BackErrorByString(ctx, "file group name cant be empty")
+			return
+		}
 		name, err := middleware.GetContextName(ctx)
 		if err != nil {
 			model.BackErrorByString(ctx, err.Error())

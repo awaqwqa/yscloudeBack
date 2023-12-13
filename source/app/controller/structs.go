@@ -45,6 +45,7 @@ func (cm *ControllerMannager) UploadFile() gin.HandlerFunc {
 	//db := cm.GetDbManager()
 	return func(c *gin.Context) {
 		file_group := c.PostForm("file_group")
+		//utils.Info("upload file : file_group >> %v", file_group)
 		name, err := middleware.GetContextName(c)
 		if err != nil {
 			model.BackErrorByString(c, err.Error())
@@ -57,20 +58,20 @@ func (cm *ControllerMannager) UploadFile() gin.HandlerFunc {
 		//}
 		file, err := c.FormFile("file")
 		if err != nil {
-			c.String(http.StatusBadRequest, "Bad request: %s", err.Error())
+			model.BackErrorByString(c, fmt.Sprintf("Bad request: %s", err.Error()))
 			return
 		}
 
 		// 检查文件大小
 		if file.Size <= 0 || file.Size > 5<<20 { // 5<<20 是 5MB
-			c.String(http.StatusBadRequest, "File size should be between 0 and 5 MB.")
+			model.BackErrorByString(c, fmt.Sprintf("File size should be between 0 and 5 MB."))
 			return
 		}
 
 		// 检查文件后缀名
 		ext := strings.ToLower(filepath.Ext(file.Filename))
 		if ext != ".schematic" && ext != ".bdx" {
-			c.String(http.StatusBadRequest, "Invalid file extension. Only .schematic and .bdx are allowed.")
+			model.BackErrorByString(c, "Invalid file extension. Only .schematic and .bdx are allowed.")
 			return
 		}
 
@@ -103,10 +104,8 @@ func (cm *ControllerMannager) UploadFile() gin.HandlerFunc {
 			model.BackErrorByString(c, err.Error())
 			return
 		}
-		file_path := filepath.Join(file_group_path, file.Filename)
-		err = filer.CheckFilePath(file_path)
-		if err != nil {
-			model.BackErrorByString(c, err.Error())
+		if !filer.IsPathValid(file.Filename) {
+			model.BackErrorByString(c, "this file path is not allowed")
 			return
 		}
 		err = cm.filer.NewTask(name, file_group, file.Filename, fileData)
