@@ -68,6 +68,8 @@ type Structure struct {
 	FileType string
 	//userName + 建筑文件的hash值
 	FileHash string `gorm:"primary_key"`
+	// 文件组 名字
+	FileGroup string
 	//建筑文件的大小
 	FileSize int64
 	//更新日期

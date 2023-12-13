@@ -22,6 +22,7 @@ func (cm *ControllerMannager) UpdateNotice() gin.HandlerFunc {
 			model.BackErrorByString(ctx, err.Error())
 			return
 		}
+
 		model.BackSuccess(ctx, nil)
 	}
 }

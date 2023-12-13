@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
+	"path/filepath"
 	"regexp"
 	"yscloudeBack/source/app/middleware"
 	"yscloudeBack/source/app/model"
@@ -140,27 +141,87 @@ func (cm *ControllerMannager) GetUserInfo() gin.HandlerFunc {
 
 	}
 }
-
-// 获取userFileName
-func (cm *ControllerMannager) GetUserFileName() gin.HandlerFunc {
-	manager := cm.GetDbManager()
+func (cm *ControllerMannager) GetFilesInfo() gin.HandlerFunc {
+	//manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {
+		fileGroupName := ctx.Request.URL.Query().Get("file_group_name")
 		name, err := middleware.GetContextName(ctx)
 		if err != nil {
 			model.BackErrorByString(ctx, err.Error())
 			return
 		}
-		user, err := manager.GetUserByUserName(name)
+		infos, err := cm.filer.GetFileGroupHeadData(name, fileGroupName)
 		if err != nil {
-			model.BackError(ctx, model.CodeGetUserFalse)
+			model.BackErrorByString(ctx, err.Error())
 			return
 		}
-		infoCopys, err := user.GetAllStructureInfoCopy()
-		if err != nil {
-			model.BackErrorByString(ctx, "cant get structures")
+		//user, err := manager.GetUserByUserName(name)
+		//if err != nil {
+		//	model.BackError(ctx, model.CodeGetUserFalse)
+		//	return
+		//}
+		//infoCopys, err := user.GetAllStructureInfoCopy()
+		//if err != nil {
+		//	model.BackErrorByString(ctx, "cant get structures")
+		//	return
+		//}
+		type form struct {
+			FileName  string
+			FileType  string
+			FileGroup string
+			FileSize  int64
+		}
+		slice := []form{}
+
+		for _, v := range infos {
+			slice = append(slice, form{
+				FileName: v.Name(),
+				FileType: filepath.Ext(v.Name()),
+				FileSize: v.Size(),
+			})
+		}
+		model.BackSuccess(ctx, slice)
+		return
+	}
+}
+
+// 获取userFileName
+func (cm *ControllerMannager) GetUserFileName() gin.HandlerFunc {
+	//manager := cm.GetDbManager()
+	return func(ctx *gin.Context) {
+		fileGroupName := ctx.Request.URL.Query().Get("file_group_name")
+		if fileGroupName == "" {
+			model.BackErrorByString(ctx, "When retrieving group files information, you need to include a parameter called file_group_name.")
 			return
 		}
-		model.BackSuccess(ctx, infoCopys)
+		name, err := middleware.GetContextName(ctx)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		// 获取文件组信息
+		infos, err := cm.filer.GetFileGroupHeadData(name, fileGroupName)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		//user, err := manager.GetUserByUserName(name)
+		//if err != nil {
+		//	model.BackError(ctx, model.CodeGetUserFalse)
+		//	return
+		//}
+		//infoCopys, err := user.GetAllStructureInfoCopy()
+		//if err != nil {
+		//	model.BackErrorByString(ctx, "cant get structures")
+		//	return
+		//}
+		slice := []string{}
+		for _, v := range infos {
+			if !v.IsDir() {
+				slice = append(slice, v.Name())
+			}
+		}
+		model.BackSuccess(ctx, slice)
 		return
 	}
 }

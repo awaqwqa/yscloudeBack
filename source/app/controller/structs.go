@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"yscloudeBack/source/app/filer"
 	"yscloudeBack/source/app/middleware"
 	"yscloudeBack/source/app/model"
 )
@@ -41,18 +42,19 @@ func (cm *ControllerMannager) GetStructs() gin.HandlerFunc {
 	}
 }
 func (cm *ControllerMannager) UploadFile() gin.HandlerFunc {
-	db := cm.GetDbManager()
+	//db := cm.GetDbManager()
 	return func(c *gin.Context) {
+		file_group := c.PostForm("file_group")
 		name, err := middleware.GetContextName(c)
 		if err != nil {
 			model.BackErrorByString(c, err.Error())
 			return
 		}
-		user, err := db.GetUserByUserName(name)
-		if err != nil {
-			model.BackError(c, model.CodeGetUserFalse)
-			return
-		}
+		//user, err := db.GetUserByUserName(name)
+		//if err != nil {
+		//	model.BackError(c, model.CodeGetUserFalse)
+		//	return
+		//}
 		file, err := c.FormFile("file")
 		if err != nil {
 			c.String(http.StatusBadRequest, "Bad request: %s", err.Error())
@@ -85,26 +87,53 @@ func (cm *ControllerMannager) UploadFile() gin.HandlerFunc {
 			model.BackErrorByString(c, err.Error())
 			return
 		}
-		structure, err := user.NewUserStructure(file.Filename, fileData)
+		user_path := cm.filer.GetUserPath(name)
+		err = filer.CheckUserPath(user_path)
 		if err != nil {
-			model.BackErrorByString(c, "cant upload file into dir")
+			err = nil
+			err := filer.CreateFolder(user_path)
+			if err != nil {
+				model.BackErrorByString(c, err.Error())
+				return
+			}
+		}
+		file_group_path := filepath.Join(user_path, file_group)
+		err = filer.CheckFileGroupPath(file_group_path)
+		if err != nil {
+			model.BackErrorByString(c, err.Error())
 			return
 		}
-		err = db.AddStructure(structure)
+		file_path := filepath.Join(file_group_path, file.Filename)
+		err = filer.CheckFilePath(file_path)
 		if err != nil {
-			model.BackErrorByString(c, "cant upload structure into db")
+			model.BackErrorByString(c, err.Error())
 			return
 		}
-		dbStructure, err := db.GetStructureByHash(structure.FileHash)
+		err = cm.filer.NewTask(name, file_group, file.Filename, fileData)
 		if err != nil {
-			model.BackErrorByString(c, "bind structure false")
+			model.BackErrorByString(c, err.Error())
 			return
 		}
-		err = db.AssociateStuctureWithUser(user.ID, dbStructure.ID)
-		if err != nil {
-			model.BackErrorByString(c, "bind structure false")
-			return
-		}
+		//structure, err := user.NewUserStructure(file.Filename, fileData, file_group)
+		//if err != nil {
+		//	model.BackErrorByString(c, "cant upload file into dir")
+		//	return
+		//}
+		//err = db.AddStructure(structure)
+		//if err != nil {
+		//	model.BackErrorByString(c, "cant upload structure into db")
+		//	return
+		//}
+		//dbStructure, err := db.GetStructureByHash(structure.FileHash)
+		//if err != nil {
+		//	model.BackErrorByString(c, "bind structure false")
+		//	return
+		//}
+		//err = db.AssociateStuctureWithUser(user.ID, dbStructure.ID)
+		//if err != nil {
+		//	model.BackErrorByString(c, "bind structure false")
+		//	return
+		//}
 		model.BackSuccess(c, fmt.Sprintf("File %s uploaded successfully with size of %d.", file.Filename, file.Size))
 		// 返回成功响应
 	}

@@ -75,7 +75,7 @@ func (a *User) GetFBToken() string {
 	return a.FBToken
 }
 
-func (a *User) NewUserStructure(fileName string, fileData []byte) (structure Structure, err error) {
+func (a *User) NewUserStructure(fileName string, fileData []byte, file_group string) (structure Structure, err error) {
 	// overwrite if exists
 	// check file type: BDX if .bdx file, Schem if .schem file, schematic if .schematic file
 	// any other file type will be rejected
@@ -104,6 +104,7 @@ func (a *User) NewUserStructure(fileName string, fileData []byte) (structure Str
 		FileHash:   GetFileHash(a.UserName, fileData),
 		FileSize:   int64(len(fileData)),
 		UploadDate: GetNowString(),
+		FileGroup:  file_group,
 	}
 	return
 }
