@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	path, err := filer.GetRelativePath()
+	path, err := filer.GetAbsolutePath()
 	if err != nil {
 		panic(err)
 		return
