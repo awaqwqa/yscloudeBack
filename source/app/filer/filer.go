@@ -272,3 +272,37 @@ func (f *Filer) DelectFileGroup(name string, fileGroupName string) error {
 	}
 	return nil
 }
+
+func (f *Filer) DelectFile(name string, fileGroupName string, fileName string) error {
+	user_path := filepath.Join(f.rootPath, name)
+	err := CheckUserPath(user_path)
+	if err != nil {
+		return err
+	}
+	file_group_path := filepath.Join(user_path, fileGroupName)
+	err = CheckFileGroupPath(file_group_path)
+	if err != nil {
+		return err
+	}
+	file_path := filepath.Join(file_group_path, fileName)
+	err = CheckFilePath(file_path)
+	if err != nil {
+		return err
+	}
+
+	// 检查是否在任务中
+	for _, v := range f.taskPool[UserDirName(name)] {
+		if v.FileGroup != fileGroupName {
+			continue
+		}
+		if v.FileName == fileName {
+			return fmt.Errorf("this file is busy,system cant delect it")
+		}
+	}
+	err = DeleteFile(file_path)
+	if err != nil {
+		utils.Error(err.Error())
+		return fmt.Errorf("delect %v file false reason:unkonw", fileName)
+	}
+	return nil
+}

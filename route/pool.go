@@ -79,6 +79,7 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			userGroup.POST("/build_structure", cm.LoadHandler())
 			userGroup.POST("/add_file_group", cm.AddFileGroup())
 			userGroup.POST("/delete_file_group", cm.DeleteFileGroup())
+			userGroup.POST("/delete_file", cm.DeleteFile())
 		}
 	}
 

@@ -110,6 +110,34 @@ func (cm *ControllerMannager) GetUsers() gin.HandlerFunc {
 		return
 	}
 }
+func (cm *ControllerMannager) DeleteFile() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var form struct {
+			FileName      string `json:"file_name"`
+			FileGroupName string `json:"file_group_name"`
+		}
+		code, err := model.BindStruct(ctx, &form)
+		if err != nil {
+			model.BackError(ctx, code)
+			return
+		}
+		if form.FileName == "" || form.FileGroupName == "" {
+			model.BackErrorByString(ctx, "fileName or file_group_name cant be empty")
+			return
+		}
+		name, err := middleware.GetContextName(ctx)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		err = cm.filer.DelectFile(name, form.FileGroupName, form.FileName)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		model.BackSuccess(ctx, fmt.Sprintf("delect %v file success", form.FileName))
+	}
+}
 func (cm *ControllerMannager) GetUserInfo() gin.HandlerFunc {
 	db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
