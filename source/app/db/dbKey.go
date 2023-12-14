@@ -1,6 +1,8 @@
 package db
 
 import (
+	"errors"
+	"gorm.io/gorm"
 	"yscloudeBack/source/app/model"
 )
 
@@ -48,4 +50,37 @@ func (dm *DbManager) UpdateKeyStatus(key *model.Key, status bool) error {
 }
 func (dm *DbManager) UpdateKeyFileGroupName(key *model.Key, name string) error {
 	return dm.dbEngine.Model(key).Update("FileGroup", name).Error
+}
+func (db *DbManager) GetKeyPriceByID(id uint) (*model.KeyPrice, error) {
+	var Value model.KeyPrice
+	result := db.dbEngine.First(&Value, id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			// 如果找不到keyValue，则自动创建一个新的公告
+			Value = model.KeyPrice{
+				ID:    id,
+				Value: 4,
+			}
+			if err := db.dbEngine.Create(&Value).Error; err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, result.Error
+		}
+	}
+	return &Value, nil
+}
+func (db *DbManager) UpdateKeyPrice(id uint, newContent int) error {
+	Value, err := db.GetKeyPriceByID(id)
+	if err != nil {
+		return err
+	}
+
+	Value.Value = newContent
+	result := db.dbEngine.Save(&Value)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }

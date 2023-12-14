@@ -33,6 +33,10 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 		{
 			noticeGroup.GET("/get_value", cm.GetNoticeValue())
 		}
+		keyGroup := baseGroup.Group("/key")
+		{
+			keyGroup.GET("/get_key_price", cm.GetKeyPrice())
+		}
 		// 登录相关
 		logGroup := baseGroup.Group(LOGPATH)
 		{
@@ -57,6 +61,7 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			adminGroup.GET("/get_fbtokens", cm.GetFbTokens())
 			adminGroup.POST("/del_fbtoken", cm.DelFbTokens())
 			adminGroup.POST("/update_notice", cm.UpdateNotice())
+			adminGroup.POST("/update_key_price", cm.UpdateKeyPrice())
 		}
 		// 文件相关
 		StructGroup := baseGroup.Group(STRUCTPATH)
@@ -70,6 +75,7 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 		userGroup := baseGroup.Group("/user")
 		userGroup.Use(middleware.JWTAuthMiddleware())
 		{
+
 			userGroup.GET("/get_keys", cm.GetUserKeys())
 			userGroup.POST("/del_keys", cm.DelUserKey())
 			userGroup.POST("/add_key", cm.AddUserKey())

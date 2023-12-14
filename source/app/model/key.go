@@ -24,6 +24,12 @@ func NewKey(usage string, num int, fileGroupName string) (Key, error) {
 	}, nil
 }
 
+// key的价格
+type KeyPrice struct {
+	ID    uint `gorm:"primaryKey"`
+	Value int
+}
+
 // 作为密钥存储
 type Key struct {
 	gorm.Model

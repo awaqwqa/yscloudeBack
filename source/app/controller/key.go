@@ -13,6 +13,8 @@ import (
 //		"num":1,
 //		"fileGroupName":""
 //	}
+//
+// 注册密钥
 func (cm *ControllerMannager) RegisterKey() gin.HandlerFunc {
 	db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
@@ -53,7 +55,29 @@ func (cm *ControllerMannager) RegisterKey() gin.HandlerFunc {
 	}
 }
 
-// 获取keys
+// 设置keyvalue
+func (cm *ControllerMannager) UpdateKeyPrice() gin.HandlerFunc {
+	manager := cm.GetDbManager()
+	return func(ctx *gin.Context) {
+		var form struct {
+			Value int `json:"key_price"`
+		}
+
+		code, err := model.BindStruct(ctx, &form)
+		if err != nil {
+			model.BackError(ctx, code)
+			return
+		}
+		err = manager.UpdateKeyPrice(1, form.Value)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		model.BackSuccess(ctx, fmt.Sprintf("set key value to %v", form.Value))
+	}
+}
+
+// 获取密钥keys
 func (cm *ControllerMannager) GetKey() gin.HandlerFunc {
 	db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
@@ -70,6 +94,21 @@ func (cm *ControllerMannager) GetKey() gin.HandlerFunc {
 		return
 	}
 }
+
+// 获取当前密钥价格
+func (cm *ControllerMannager) GetKeyPrice() gin.HandlerFunc {
+	manager := cm.GetDbManager()
+	return func(ctx *gin.Context) {
+		id, err := manager.GetKeyPriceByID(1)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		model.BackSuccess(ctx, id)
+	}
+}
+
+// 删除密钥
 func (cm *ControllerMannager) DelKey() gin.HandlerFunc {
 
 	db := cm.GetDbManager()
