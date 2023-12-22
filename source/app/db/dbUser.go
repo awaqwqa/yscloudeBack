@@ -36,7 +36,7 @@ func (dm *DbManager) DeleteUser(username string) error {
 
 // get all users from db
 func (dm *DbManager) GetUsers() (users []model.User, err error) {
-	result := dm.dbEngine.Find(&users)
+	result := dm.dbEngine.Preload("UserKeys").Preload("Slots").Find(&users)
 	if result.Error != nil {
 		return users, result.Error
 	}
@@ -47,7 +47,7 @@ func (dm *DbManager) CheckErrorUserNotFound(err error) bool {
 }
 
 func (dm *DbManager) GetUserByUserName(name string) (user *model.User, err error) {
-	result := dm.dbEngine.Preload("UserKeys").Preload("Structures").Where("user_name = ?", name).First(&user)
+	result := dm.dbEngine.Preload("UserKeys").Preload("Slots").Where("user_name = ?", name).First(&user)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("user not found")
@@ -56,6 +56,7 @@ func (dm *DbManager) GetUserByUserName(name string) (user *model.User, err error
 	}
 	return user, nil
 }
+
 func (dm *DbManager) GetUserKeys(userID int) []model.Key {
 	var user model.User
 	dm.dbEngine.Preload("UserKeys").First(&user, userID)
@@ -67,9 +68,26 @@ func (dm *DbManager) AssociateKeyWithUser(userID uint, keyID uint) error {
 	result := dm.dbEngine.Model(&model.Key{}).Where("id = ?", keyID).Update("user_id", userID)
 	return result.Error
 }
+func (dm *DbManager) UpdateUserBalance(userId uint, value int) error {
+	user := model.User{}
+	db := dm.dbEngine
+	err := db.Model(&model.User{}).Where("id = ?", userId).First(&user).Error
+	if err != nil {
+		return err
+	}
 
-// 关联 User 和 structure
-func (dm *DbManager) AssociateStuctureWithUser(userID uint, structureID uint) error {
-	result := dm.dbEngine.Model(&model.Structure{}).Where("id = ?", structureID).Update("structure_user_id", userID)
-	return result.Error
+	user.Balance = value
+	err = db.Model(&user).Updates(user).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
+
+//
+//// 关联 User 和 structure
+//func (dm *DbManager) AssociateStuctureWithUser(userID uint, structureID uint) error {
+//	result := dm.dbEngine.Model(&model.Structure{}).Where("id = ?", structureID).Update("structure_user_id", userID)
+//	return result.Error
+//}

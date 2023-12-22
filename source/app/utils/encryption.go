@@ -2,14 +2,15 @@ package utils
 
 import (
 	"crypto/md5"
-	"crypto/rand"
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
+	"time"
 )
 
 func Md5Encrypt(input string) string {
@@ -70,4 +71,10 @@ func HashFileSHA256(filePath string) (string, error) {
 	// 计算并返回最终的哈希值
 	hash := hasher.Sum(nil)
 	return fmt.Sprintf("%x", hash), nil
+}
+func GenerateUniqueIntID() int64 {
+	rand.Seed(time.Now().UnixNano())
+	min := int64(10000000) // 最小值（8位数的最小值）
+	max := int64(99999999) // 最大值（8位数的最大值）
+	return rand.Int63n(max-min+1) + min
 }

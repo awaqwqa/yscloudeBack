@@ -27,8 +27,8 @@ func (cm *ControllerMannager) RegisterKey() gin.HandlerFunc {
 			model.BackError(ctx, code)
 			return
 		}
-		if form.Usage != model.USAGE_LOAD && form.Usage != model.USAGE_REGISTER {
-			model.BackSuccess(ctx, model.CodeCodeTypeFalse)
+		if form.Usage != model.USAGE_LOAD && form.Usage != model.USAGE_REGISTER && form.Usage != model.USAGE_DISSLOT && form.Usage != model.USAGE_PRSLOT {
+			model.BackError(ctx, model.CodeCodeTypeFalse)
 			return
 		}
 		if !(form.Num > 0) {

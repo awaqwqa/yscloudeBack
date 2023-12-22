@@ -20,7 +20,7 @@ func (dm *DbManager) Init() error {
 	if dm.dbEngine == nil {
 		return fmt.Errorf("db is not exiting,maybe init() will help you")
 	}
-	err := dm.dbEngine.AutoMigrate(&model.User{}, &model.Key{}, &model.FbToken{}, &model.Structure{}, &model.Notice{}, model.KeyPrice{})
+	err := dm.dbEngine.AutoMigrate(&model.User{}, &model.Key{}, &model.FbToken{}, &model.Structure{}, &model.Notice{}, model.KeyPrice{}, model.Slot{})
 	if err != nil {
 		utils.Error(err.Error())
 		return err
@@ -52,4 +52,10 @@ func (dm *DbManager) AddData(data interface{}) error {
 }
 func (dm *DbManager) SaveData(data interface{}) error {
 	return dm.dbEngine.Save(&data).Error
+}
+
+// 传结构体而非指针
+func (dm *DbManager) InsertData(data interface{}) error {
+	err := dm.dbEngine.Create(&data).Error
+	return err
 }

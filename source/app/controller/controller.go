@@ -2,9 +2,13 @@ package controller
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"yscloudeBack/source/app/cluster"
 	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/filer"
+	"yscloudeBack/source/app/middleware"
+	"yscloudeBack/source/app/model"
+	"yscloudeBack/source/app/utils"
 )
 
 func NewControllerManager() *ControllerMannager {
@@ -20,6 +24,20 @@ type ControllerMannager struct {
 	filer         *filer.Filer
 	isDbWork      bool
 	isClusterWork bool
+}
+
+func (cm *ControllerMannager) GetUserFromCtx(ctx *gin.Context) (*model.User, error) {
+	name, err := middleware.GetContextName(ctx)
+	if err != nil {
+		return &model.User{}, err
+	}
+	user, err := cm.GetDbManager().GetUserByUserName(name)
+	if err != nil {
+		utils.Error(err.Error())
+		return &model.User{}, fmt.Errorf("cant get user struct by name ")
+	}
+	return user, nil
+
 }
 
 func (cm *ControllerMannager) SetFiler(filer *filer.Filer) error {

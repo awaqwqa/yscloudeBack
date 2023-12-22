@@ -539,6 +539,45 @@ func (cm *ControllerMannager) Register() gin.HandlerFunc {
 		return
 	}
 }
+func (cm *ControllerMannager) GetBalance() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		user, err := cm.GetUserFromCtx(ctx)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		model.BackSuccess(ctx, user.Balance)
+	}
+}
+func (cm *ControllerMannager) UpdateBalance() gin.HandlerFunc {
+	manager := cm.GetDbManager()
+	return func(ctx *gin.Context) {
+		var form struct {
+			UserName   string `json:"username"`
+			NewBalance int    `json:"new_balance"`
+		}
+		code, err := model.BindStruct(ctx, &form)
+		if err != nil {
+			model.BackError(ctx, code)
+			return
+		}
+		user, err := manager.GetUserByUserName(form.UserName)
+		if err != nil {
+			utils.Error(err.Error())
+			model.BackErrorByString(ctx, fmt.Sprintf("cant get user by username:%v", form.UserName))
+			return
+		}
+		user.Balance = form.NewBalance
+		err = manager.UpdateUserBalance(user.ID, user.Balance)
+		if err != nil {
+			utils.Error(err.Error())
+			model.BackErrorByString(ctx, fmt.Sprintf("update user balance false"))
+			return
+		}
+		model.BackSuccess(ctx, fmt.Sprintf("update user balance to %v success", form.NewBalance))
+
+	}
+}
 func (cm *ControllerMannager) Login() gin.HandlerFunc {
 	manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {

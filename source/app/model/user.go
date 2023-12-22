@@ -25,6 +25,7 @@ type User struct {
 	UserKeys   []Key      `gorm:"foreignKey:UserID"`
 	FBToken    string
 	Structures []Structure `gorm:"foreignKey:StructureUserId"`
+	Slots      []Slot      `gorm:"foreignKey:UserID"`
 	// 余额值
 	Balance           int `gorm:"balance"`
 	Token             string

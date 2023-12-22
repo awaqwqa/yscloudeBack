@@ -62,6 +62,7 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			adminGroup.POST("/del_fbtoken", cm.DelFbTokens())
 			adminGroup.POST("/update_notice", cm.UpdateNotice())
 			adminGroup.POST("/update_key_price", cm.UpdateKeyPrice())
+			adminGroup.POST("/update_user_balance", cm.UpdateBalance())
 		}
 		// 文件相关
 		StructGroup := baseGroup.Group(STRUCTPATH)
@@ -86,6 +87,11 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			userGroup.POST("/add_file_group", cm.AddFileGroup())
 			userGroup.POST("/delete_file_group", cm.DeleteFileGroup())
 			userGroup.POST("/delete_file", cm.DeleteFile())
+			userGroup.GET("/get_balance", cm.GetBalance())
+			userGroup.POST("/add_slot", cm.AddSlots())
+			userGroup.POST("/update_slot", cm.UpdateSlots())
+			userGroup.GET("/get_slots", cm.GetUserSlots())
+			userGroup.POST("/del_slots", cm.DelUserSlots())
 		}
 	}
 

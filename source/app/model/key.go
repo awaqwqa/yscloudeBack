@@ -8,6 +8,10 @@ import (
 const (
 	USAGE_LOAD     = "导入"
 	USAGE_REGISTER = "注册"
+	// 永久卡槽
+	USAGE_PRSLOT = "permanent"
+	// 一次性卡槽
+	USAGE_DISSLOT = "disposable"
 )
 
 func NewKey(usage string, num int, fileGroupName string) (Key, error) {
