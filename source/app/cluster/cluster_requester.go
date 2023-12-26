@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"yscloudeBack/source/app/utils"
 )
 
 type RespCb func(msg map[string]interface{})
@@ -33,6 +34,8 @@ func NewClusterRequester() *ClusterRequester {
 func (cr *ClusterRequester) Init(host string) error {
 	conn, _, err := websocket.DefaultDialer.Dial(host, http.Header{})
 	if err != nil {
+		utils.Error(err.Error())
+		cr.ConnectStatus = false
 		return err
 	}
 	cr.conn = conn
@@ -66,6 +69,8 @@ func toString(data interface{}) string {
 	}
 }
 
+// taskName cmd为builder_wrapper地址 args 为需要携带的参数
+// args主要是:--convert-dir 转化地址 --file为文件地址 --user-token为本次导入的token --server为服务器code --pos [x,y,z]为导入的地址
 func (r *ClusterRequester) Run(name, cmd string, args []string, cb func(instanceID string, err string)) {
 	r.sendRequest("run", map[string]interface{}{
 		"name": name,
@@ -147,7 +152,7 @@ func (r *ClusterRequester) sendRequest(action string, req map[string]interface{}
 	}
 	err := r.conn.WriteJSON(req)
 	if err != nil {
-		print(err)
+		utils.Error(err.Error())
 	}
 }
 
@@ -158,6 +163,7 @@ func (r *ClusterRequester) InitReadLoop(ctx context.Context) (err error) {
 		var msg map[string]interface{}
 		_, data, err = r.conn.ReadMessage()
 		if err != nil {
+			utils.Error(err.Error())
 			r.ConnectStatus = false
 			return
 		}
@@ -167,24 +173,36 @@ func (r *ClusterRequester) InitReadLoop(ctx context.Context) (err error) {
 		}
 		err = json.Unmarshal(data, &msg)
 		if err != nil {
+			utils.Error(err.Error())
 			r.ConnectStatus = false
 			return err
 		}
-		if opID, found := msg["op_id"]; found {
-			if streamID, found := msg["stream_id"]; found {
-				if l, found := r.streamListeners.Get(streamID.(string)); found {
-					if err := l(toString(msg["msg"])); err != nil {
-						r.streamListeners.Delete(streamID.(string))
-					}
-				}
-			} else {
-				if l, found := r.cbs.Get(opID.(string)); found {
-					l(msg)
-					r.cbs.Delete(opID.(string))
-				}
-			}
-		} else {
-			fmt.Printf("msg no op_id: %v\n", msg)
+		opID, found := msg["op_id"]
+		if !found {
+			utils.Error("msg no op_id: %v\n", msg)
+			return
 		}
+		// 出现stream_id 这里可以暂时理解这个id就是在开始文件导入的时候才有的
+		if streamID, found := msg["stream_id"]; found {
+			l, found := r.streamListeners.Get(streamID.(string))
+			if !found {
+				utils.Error("cant find streamId %v function", streamID.(string))
+				return
+			}
+			// 发送消息
+			if err := l(toString(msg["msg"])); err != nil {
+				utils.Error(err.Error())
+				r.streamListeners.Delete(streamID.(string))
+			}
+			return
+		}
+		// 查看是否有对应id
+		if l, found := r.cbs.Get(opID.(string)); found {
+			// 这里调用函数
+			// 然后删除
+			l(msg)
+			r.cbs.Delete(opID.(string))
+		}
+
 	}
 }

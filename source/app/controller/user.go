@@ -539,6 +539,7 @@ func (cm *ControllerMannager) Register() gin.HandlerFunc {
 		return
 	}
 }
+
 func (cm *ControllerMannager) GetBalance() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user, err := cm.GetUserFromCtx(ctx)
@@ -568,6 +569,7 @@ func (cm *ControllerMannager) UpdateBalance() gin.HandlerFunc {
 			return
 		}
 		user.Balance = form.NewBalance
+		utils.Info("修改成功%v", user.Balance)
 		err = manager.UpdateUserBalance(user.ID, user.Balance)
 		if err != nil {
 			utils.Error(err.Error())

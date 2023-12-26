@@ -19,10 +19,10 @@ func (cm *ControllerMannager) SetFbToken() gin.HandlerFunc {
 			model.BackError(ctx, code)
 			return
 		}
-		if manager.CheckFbToken(form.FbToken) {
-			model.BackErrorByString(ctx, "this fbtoken is already exit")
-			return
-		}
+		//if manager.CheckFbToken(form.FbToken) {
+		//	model.BackErrorByString(ctx, "this fbtoken is already exit")
+		//	return
+		//}
 		fbToken := model.NewFbToken(form.FbToken, form.ReMark)
 		err = manager.AddFbToken(fbToken)
 		if err != nil {

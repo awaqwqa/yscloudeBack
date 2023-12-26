@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"yscloudeBack/source/app/cluster"
@@ -71,5 +72,13 @@ func (cm *ControllerMannager) SetCluster(cluster *cluster.ClusterRequester) erro
 	}
 	cm.cluster = cluster
 	cm.isClusterWork = true
+	ctx, cancelFn := context.WithCancel(context.Background())
+	go func() {
+		err := cm.cluster.InitReadLoop(ctx)
+		if err != nil {
+			cancelFn()
+			utils.Error(err.Error())
+		}
+	}()
 	return nil
 }

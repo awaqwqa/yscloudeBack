@@ -4,48 +4,97 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
-	"yscloudeBack/source/app/middleware"
 	"yscloudeBack/source/app/model"
+	"yscloudeBack/source/app/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	TYPE_LOAD_KEY     = "key_load"
+	TYPE_LOAD_BALANCE = "balance_load"
+)
+
+type StructureForm struct {
+	FileGroupName string `json:"file_group_name"`
+	StructureName string `json:"structure_name"`
+	ServerCode    string `json:"server_code"`
+	ServerPasswd  string `json:"server_passwd"`
+	PosX          int    `json:"pox_x"`
+	PoxY          int    `json:"pos_y"`
+	PosZ          int    `json:"pos_z"`
+	Type          string `json:"type"`
+	Key           string `json:"key"`
+}
+
+func CheckLoadStrucForm(form *StructureForm) error {
+	if form.FileGroupName == "" {
+		return fmt.Errorf("file group name cant be nil")
+	}
+	if form.StructureName == "" {
+		return fmt.Errorf("struct name cant be nil")
+	}
+	if form.ServerCode == "" {
+		return fmt.Errorf("server code cant be nil")
+	}
+	if form.Type == "" {
+		return fmt.Errorf("type cant be nil")
+	}
+	if form.Type == TYPE_LOAD_KEY && form.Key == "" {
+		return fmt.Errorf("when type is key_load ,the key is not alllowed be nil ")
+	}
+	return nil
+}
 func (cm *ControllerMannager) LoadHandler() gin.HandlerFunc {
 	db := cm.GetDbManager()
 	client := cm.GetCluster()
 	return func(ctx *gin.Context) {
 		//绑定参数
+		var form StructureForm
 		option := &model.BuildOption{}
-		code, err := model.BindStruct(ctx, &option)
+		code, err := model.BindStruct(ctx, &form)
 		if err != nil {
 			model.BackError(ctx, code)
 			return
 		}
-
-		// 获取 user
-		value, isFind := ctx.Get(middleware.ContextName)
-		if !isFind {
-			model.BackError(ctx, model.CodeGetUserFalse)
-			return
-		}
-		userName := value.(string)
-		user, err := db.GetUserByUserName(userName)
+		// 检查form是否正常
+		err = CheckLoadStrucForm(&form)
 		if err != nil {
-			model.BackError(ctx, model.CodeGetUserFalse)
+			model.BackErrorByString(ctx, err.Error())
 			return
-		}
-		//获取fbToken
-		fbTokens, err := db.GetFbTokens()
-		if err != nil {
-			model.BackError(ctx, model.CodeGetFbTokenFalse)
-			return
-		}
-		var fbToken string
-		if len(fbTokens) > 0 {
-			fbToken = fbTokens[0].Value
 		}
 
+		user, err := cm.GetUserFromCtx(ctx)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		tokens, err := db.GetFbTokens()
+		if err != nil {
+			utils.Error(err.Error())
+			model.BackErrorByString(ctx, fmt.Sprintf("cant get fb tokens of struct_loader"))
+			return
+		}
+		if len(tokens) == 0 {
+			model.BackErrorByString(ctx, fmt.Sprintf("fbtoken num is 0"))
+			return
+		}
+		fbToken := tokens[0]
+		func() {
+			//set taskName
+			//
+			//utils.Info("fbToken is : %v", fbToken)
+			option.TaskName = form.StructureName + "::" + user.UserName
+			option.Auth.Token = fbToken.Value
+			option.PosX = form.PosX
+			option.PosZ = form.PosZ
+			option.PosY = form.PoxY
+			option.StructureName = form.StructureName
+			option.RentalServerCode = form.ServerCode
+			option.RentalServerPassword = form.ServerPasswd
+		}()
 		//文件地址
 		workDir, _ := os.Getwd()
 		wrapperExec := path.Join(workDir, "builder_wrapper")
@@ -75,67 +124,61 @@ func (cm *ControllerMannager) LoadHandler() gin.HandlerFunc {
 		fileSize := int64(0)
 		{
 			ok := false
-			infoCopy, err := user.GetAllStructureInfoCopy()
-			if err != nil {
-				model.BackError(ctx, model.CodeUnknowError)
+			infoCopy, err2 := cm.filer.GetFileGroupHeadData(user.UserName, form.FileGroupName)
+			if err2 != nil {
+				utils.Error(err2.Error())
+				model.BackErrorByString(ctx, fmt.Sprintf("cant get file group structs infos"))
 				return
 			}
 			for _, v := range infoCopy {
-				if v.FileName == option.StructureName {
-					fileSize = v.FileSize
+				if v.Name() == option.StructureName {
+					fileSize = v.Size()
 					ok = true
 				}
 			}
 			if !ok {
-				model.BackError(ctx, model.CodeUnknowError)
+				model.BackErrorByString(ctx, fmt.Sprintf("cant find the %v file from fileGroup", form.StructureName))
 				return
 			}
 		}
-		option.StructureName = path.Join(user.GetDirPath(), option.StructureName)
-		if args, err := compileBuildExecArgs(option, fbToken); err != nil {
+		// 这里structureName
+		user_path := cm.filer.GetUserPath(user.UserName)
+		filepath.Join(user_path, form.FileGroupName)
+		file_path := filepath.Join(user_path, form.StructureName)
+		option.StructureName = file_path
+		args, err := compileBuildExecArgs(option, fbToken.Value)
+		if err != nil {
 			model.BackError(ctx, model.CodeUnknowError)
 			return
-		} else {
-			resultChan := make(chan struct{ instanceID, err string }, 1)
-			client.Run(option.TaskName, wrapperExec, args, func(instanceID string, err string) {
-				resultChan <- struct{ instanceID, err string }{instanceID, err}
-			})
-			r := <-resultChan
-			if r.err == "" {
-				buildInstanceDetail := &model.BuildTaskInfo{
-					Time:        time.Now().String(),
-					InstanceID:  r.instanceID,
-					StartArgs:   args,
-					BuildOption: option,
-					FileSize:    fileSize,
-				}
-				//m.AppendBuildInstanceDetail(a, buildInstanceDetail)
-				//c.JSON(200, gin.H{"instance_id": r.instanceID})
-				model.BackSuccess(ctx, buildInstanceDetail.InstanceID)
-			} else {
-				model.BackErrorByString(ctx, "不能创建导入任务")
-				return
-			}
 		}
-		//compileBuildExecArgs := func(option *model.BuildOption, fbToken string) (args []string, err error) {
-		//	if fbToken == "" {
-		//		return nil, fmt.Errorf("fbtoken not provided")
-		//	}
-		//	if option.RentalServerCode == "" {
-		//		return nil, fmt.Errorf("rental server code not provided")
-		//	}
-		//	args = []string{
-		//		"--convert-dir", convertDir,
-		//		"--file", option.StructureName,
-		//		"--user-token", fbToken,
-		//		"--server", option.RentalServerCode,
-		//		"--pos", fmt.Sprintf("[%v,%v,%v]", option.PosX, option.PosY, option.PosZ),
-		//	}
-		//	if option.RentalServerPassword != "" {
-		//		args = append(args, "--server-password", option.RentalServerPassword)
-		//	}
-		//	return args, nil
-		//}
+
+		resultChan := make(chan struct{ instanceID, err string }, 1)
+		//utils.Info("args:%v", args)
+		//utils.Info("taskName:%v,wrapperExec:%v,args:%v", option.TaskName, wrapperExec, args)
+		client.Run(option.TaskName, wrapperExec, args, func(instanceID string, err string) {
+			resultChan <- struct{ instanceID, err string }{instanceID, err}
+		})
+
+		r := <-resultChan
+		if r.err != "" {
+			model.BackErrorByString(ctx, "不能创建导入任务")
+			utils.Error("不能创建导入任务")
+			return
+		}
+		buildInstanceDetail := &model.BuildTaskInfo{
+			Time:        time.Now().String(),
+			InstanceID:  r.instanceID,
+			StartArgs:   args,
+			BuildOption: option,
+			FileSize:    fileSize,
+		}
+		//m.AppendBuildInstanceDetail(a, buildInstanceDetail)
+		//c.JSON(200, gin.H{"instance_id": r.instanceID})
+		//model.BackSuccess(ctx, buildInstanceDetail.InstanceID)
+		utils.Info("%v 任务id", buildInstanceDetail.InstanceID)
+		model.BackSuccess(ctx, fmt.Sprintf("%v", buildInstanceDetail.InstanceID))
+		return
+
 	}
 }
 

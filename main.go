@@ -47,6 +47,7 @@ func main() {
 		utils.Error(err.Error())
 		return
 	}
+
 	err = cm.SetFiler(filer)
 	if err != nil {
 		utils.Error(err.Error())
@@ -68,6 +69,7 @@ func main() {
 	//utils.NewLoggerManager("./log")
 
 	r := gin.Default()
+
 	route.InitRoute(r, cm)
 	err = r.Run(":24016")
 	if err != nil {

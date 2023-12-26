@@ -93,7 +93,7 @@ func (cm *ControllerMannager) GetUserSlots() gin.HandlerFunc {
 			model.BackErrorByString(ctx, err.Error())
 			return
 		}
-		fmt.Println("user.slots", user.Slots)
+		//fmt.Println("user.slots", user.Slots)
 		model.BackSuccess(ctx, user.Slots)
 	}
 }
