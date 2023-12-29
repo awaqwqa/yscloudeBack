@@ -60,13 +60,14 @@ func (cm *ControllerMannager) GetStreamOutput() gin.HandlerFunc {
 			return
 		}
 		instanceID := form.InsId
+		utils.Info(instanceID)
 		choker := make(chan struct{}, 1)
 		stop, err := cm.streamController.AttachListener(instanceID, func(msg string) error {
 			_, e := ctx.Writer.WriteString(msg)
 			if e != nil {
-				choker <- struct{}{}
 				return e
 			}
+			choker <- struct{}{}
 			return nil
 
 		})
