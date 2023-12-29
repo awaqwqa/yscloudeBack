@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -26,47 +24,22 @@ func main() {
 		panic(err)
 	}
 	//这里塞一个相对地址
-	filer := filer.NewFiler("./user_file")
+	newFiler := filer.NewFiler("./user_file")
 	//clusterRequester
-	// 这里由controllerManager负责调控 所以defer contollerManager.close()会关闭所有的线程
-	ctx, cancelFn := context.WithCancel(context.Background())
-	defer cancelFn()
+	// 这里由controllerManager负责调控 所以defer controllerManager.close()会关闭所有的线程
 	client := cluster.NewClusterRequester()
 	err = client.Init("ws://localhost:3002/")
 	if err != nil {
 		utils.Error(err.Error())
 	}
-	fmt.Println(ctx)
+	// 设置streamController
+	stc := cluster.NewStreamController(client)
 	cm := controller.NewControllerManager()
-	err = cm.SetDbManager(dbManager)
-	if err != nil {
-		panic(err)
-	}
-	err = cm.SetCluster(client)
+	err = cm.Init(stc, dbManager, client, newFiler)
 	if err != nil {
 		utils.Error(err.Error())
 		return
 	}
-
-	err = cm.SetFiler(filer)
-	if err != nil {
-		utils.Error(err.Error())
-		return
-	}
-	//go func() {
-	//	err := client.InitReadLoop(ctx)
-	//	if err != nil {
-	//		cancelFn()
-	//		utils.Error(err.Error())
-	//	}
-	//}()
-
-	//cmdController := utils.NewCmdController()
-	//cmdController.Init()
-	//cmdController.Listen()
-
-	//loger
-	//utils.NewLoggerManager("./log")
 
 	r := gin.Default()
 

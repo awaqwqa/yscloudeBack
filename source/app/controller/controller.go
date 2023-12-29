@@ -20,11 +20,12 @@ func NewControllerManager() *ControllerMannager {
 }
 
 type ControllerMannager struct {
-	dbManager     *db.DbManager
-	cluster       *cluster.ClusterRequester
-	filer         *filer.Filer
-	isDbWork      bool
-	isClusterWork bool
+	dbManager        *db.DbManager
+	cluster          *cluster.ClusterRequester
+	streamController *cluster.StreamController
+	filer            *filer.Filer
+	isDbWork         bool
+	isClusterWork    bool
 }
 
 func (cm *ControllerMannager) GetUserFromCtx(ctx *gin.Context) (*model.User, error) {
@@ -40,7 +41,26 @@ func (cm *ControllerMannager) GetUserFromCtx(ctx *gin.Context) (*model.User, err
 	return user, nil
 
 }
+func (cm *ControllerMannager) Init(sc *cluster.StreamController, db *db.DbManager, cluster *cluster.ClusterRequester, filer *filer.Filer) error {
+	err := cm.SetStreamController(sc)
+	if err != nil {
+		return err
+	}
+	err = cm.SetDbManager(db)
+	if err != nil {
+		return err
+	}
+	err = cm.SetCluster(cluster)
+	if err != nil {
+		return err
+	}
 
+	err = cm.SetFiler(filer)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func (cm *ControllerMannager) SetFiler(filer *filer.Filer) error {
 	if cm.filer != nil {
 		return fmt.Errorf("filer is exited ,you cant set filer again")
@@ -64,6 +84,10 @@ func (cm *ControllerMannager) SetDbManager(db *db.DbManager) error {
 
 	cm.dbManager = db
 	cm.isDbWork = true
+	return nil
+}
+func (cm *ControllerMannager) SetStreamController(sc *cluster.StreamController) error {
+	cm.streamController = sc
 	return nil
 }
 func (cm *ControllerMannager) SetCluster(cluster *cluster.ClusterRequester) error {

@@ -47,6 +47,39 @@ func CheckLoadStrucForm(form *StructureForm) error {
 	}
 	return nil
 }
+
+func (cm *ControllerMannager) GetStreamOutput() gin.HandlerFunc {
+	//db := cm.GetDbManager()
+	return func(ctx *gin.Context) {
+		var form struct {
+			InsId string `json:"instance_id"`
+		}
+		code, err2 := model.BindStruct(ctx, &form)
+		if err2 != nil {
+			model.BackError(ctx, code)
+			return
+		}
+		instanceID := form.InsId
+		choker := make(chan struct{}, 1)
+		stop, err := cm.streamController.AttachListener(instanceID, func(msg string) error {
+			_, e := ctx.Writer.WriteString(msg)
+			if e != nil {
+				choker <- struct{}{}
+				return e
+			}
+			return nil
+
+		})
+		if err != nil {
+			close(choker)
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		ctx.Status(200)
+		<-choker
+		stop()
+	}
+}
 func (cm *ControllerMannager) LoadHandler() gin.HandlerFunc {
 	db := cm.GetDbManager()
 	client := cm.GetCluster()

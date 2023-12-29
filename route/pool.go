@@ -76,7 +76,6 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 		userGroup := baseGroup.Group("/user")
 		userGroup.Use(middleware.JWTAuthMiddleware())
 		{
-
 			userGroup.GET("/get_keys", cm.GetUserKeys())
 			userGroup.POST("/del_keys", cm.DelUserKey())
 			userGroup.POST("/add_key", cm.AddUserKey())
@@ -92,6 +91,7 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			userGroup.POST("/update_slot", cm.UpdateSlots())
 			userGroup.GET("/get_slots", cm.GetUserSlots())
 			userGroup.POST("/del_slots", cm.DelUserSlots())
+			userGroup.GET("/stream-instance-output", cm.GetStreamOutput())
 		}
 	}
 
