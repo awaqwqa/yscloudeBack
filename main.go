@@ -63,8 +63,10 @@ func ArchiveListen(client *cluster.ClusterRequester, archiveManager *archiveMana
 		//看起来像是实列转化为建筑
 		instanceToArchive := make([]cluster.InstanceDetail, 0)
 		choker := make(chan struct{}, 1)
+		utils.Info("details:")
 		client.List(func(details []cluster.InstanceDetail) {
 			for _, d := range details {
+				fmt.Printf("%v,", d)
 				if d.Status == "Finished" {
 					instanceToArchive = append(instanceToArchive, d)
 				}
@@ -72,8 +74,10 @@ func ArchiveListen(client *cluster.ClusterRequester, archiveManager *archiveMana
 			close(choker)
 		})
 		<-choker
+		utils.Info("task:")
 		for _, _instance := range instanceToArchive {
 			instance := _instance
+			fmt.Printf("%v,", instance)
 			d, _ := json.Marshal(instance)
 			archiveManager.ArchiveNew(fmt.Sprintf("instance.%v.detail", instance.InstanceID), d)
 			// 说明一下journal干什么的
