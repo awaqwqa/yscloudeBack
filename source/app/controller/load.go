@@ -51,7 +51,7 @@ func CheckLoadStrucForm(form *StructureForm) error {
 }
 func (cm *ControllerMannager) GetInstanceStatus() gin.HandlerFunc {
 	archiveManager := cm.archiveManager
-	client := cm.GetCluster()
+	//client := cm.GetCluster()
 	return func(ctx *gin.Context) {
 		var form struct {
 			InstanceId string `json:"instance_id"`
