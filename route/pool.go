@@ -91,7 +91,8 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			userGroup.POST("/update_slot", cm.UpdateSlots())
 			userGroup.GET("/get_slots", cm.GetUserSlots())
 			userGroup.POST("/del_slots", cm.DelUserSlots())
-			userGroup.GET("/stream-instance-output", cm.GetStreamOutput())
+			userGroup.GET("/get_instance_status", cm.GetInstanceStatus())
+			//userGroup.GET("/stream-instance-output", cm.GetStreamOutput())
 		}
 	}
 

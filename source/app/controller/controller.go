@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"yscloudeBack/source/app/archiveManager"
 	"yscloudeBack/source/app/cluster"
 	"yscloudeBack/source/app/db"
 	"yscloudeBack/source/app/filer"
@@ -24,6 +25,7 @@ type ControllerMannager struct {
 	cluster          *cluster.ClusterRequester
 	streamController *cluster.StreamController
 	filer            *filer.Filer
+	archiveManager   *archiveManager.ArchiveManager
 	isDbWork         bool
 	isClusterWork    bool
 }
@@ -41,7 +43,7 @@ func (cm *ControllerMannager) GetUserFromCtx(ctx *gin.Context) (*model.User, err
 	return user, nil
 
 }
-func (cm *ControllerMannager) Init(sc *cluster.StreamController, db *db.DbManager, cluster *cluster.ClusterRequester, filer *filer.Filer) error {
+func (cm *ControllerMannager) Init(sc *cluster.StreamController, db *db.DbManager, cluster *cluster.ClusterRequester, filer *filer.Filer, acm *archiveManager.ArchiveManager) error {
 	err := cm.SetStreamController(sc)
 	if err != nil {
 		return err
@@ -59,6 +61,11 @@ func (cm *ControllerMannager) Init(sc *cluster.StreamController, db *db.DbManage
 	if err != nil {
 		return err
 	}
+	err = cm.SetArchiveManager(acm)
+	return nil
+}
+func (cm *ControllerMannager) SetArchiveManager(acm *archiveManager.ArchiveManager) error {
+	cm.archiveManager = acm
 	return nil
 }
 func (cm *ControllerMannager) SetFiler(filer *filer.Filer) error {

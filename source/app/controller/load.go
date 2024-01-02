@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"time"
+	"yscloudeBack/source/app/cluster"
 	"yscloudeBack/source/app/model"
 	"yscloudeBack/source/app/utils"
 
@@ -47,7 +49,42 @@ func CheckLoadStrucForm(form *StructureForm) error {
 	}
 	return nil
 }
+func (cm *ControllerMannager) GetInstanceStatus() gin.HandlerFunc {
+	archiveManager := cm.archiveManager
+	client := cm.GetCluster()
+	return func(ctx *gin.Context) {
+		var form struct {
+			InstanceId string `json:"instance_id"`
+		}
+		code, err := model.BindStruct(ctx, &form)
+		if err != nil {
+			model.BackError(ctx, code)
+			return
+		}
+		instanceID := form.InstanceId
+		res, err := archiveManager.GetArchive(fmt.Sprintf("instance.%v.detail", instanceID))
+		if err == nil {
+			detail := cluster.InstanceDetail{}
+			err := json.Unmarshal(res, &detail)
+			errS := ""
+			if err != nil {
+				errS = err.Error()
+			}
+			model.BackSuccess(ctx, gin.H{"status": detail.Status, "name": detail.Name, "detail": detail.StatusDetail, "error": errS})
+			//c.JSON(200, gin.H{"status": detail.Status, "name": detail.Name, "detail": detail.StatusDetail, "error": errS})
+			return
 
+		}
+		choker := make(chan struct{}, 1)
+		client.Status(instanceID, func(status, detail, name string, err string) {
+			model.BackSuccess(ctx, gin.H{"status": status, "name": name, "detail": detail, "error": err})
+			//c.JSON(200, gin.H{"status": status, "name": name, "detail": detail, "error": err})
+			close(choker)
+		})
+		<-choker
+
+	}
+}
 func (cm *ControllerMannager) GetStreamOutput() gin.HandlerFunc {
 	//db := cm.GetDbManager()
 	return func(ctx *gin.Context) {
