@@ -66,7 +66,7 @@ func ArchiveListen(client *cluster.ClusterRequester, archiveManager *archiveMana
 		utils.Info("details:")
 		client.List(func(details []cluster.InstanceDetail) {
 			for _, d := range details {
-				fmt.Printf("instanceid:%v,Name:%v,cmd:%v,Status:%v,StatusDetail:%v\n", d.InstanceID, d.Name, d.Cmd, d.Status, d.StatusDetail)
+				fmt.Printf("instanceid:%v,Name:%v,cmd:%v,Status:%v,StatusDetail:%v\n	args:%v", d.InstanceID, d.Name, d.Cmd, d.Status, d.StatusDetail, d.Args)
 				if d.Status == "Finished" {
 					instanceToArchive = append(instanceToArchive, d)
 				}
