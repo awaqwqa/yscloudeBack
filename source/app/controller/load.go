@@ -63,25 +63,28 @@ func (cm *ControllerMannager) GetInstanceStatus() gin.HandlerFunc {
 		}
 		instanceID := form.InstanceId
 		res, err := archiveManager.GetArchive(fmt.Sprintf("instance.%v.detail", instanceID))
-		if err == nil {
-			detail := cluster.InstanceDetail{}
-			err := json.Unmarshal(res, &detail)
-			errS := ""
-			if err != nil {
-				errS = err.Error()
-			}
-			model.BackSuccess(ctx, gin.H{"status": detail.Status, "name": detail.Name, "detail": detail.StatusDetail, "error": errS})
-			//c.JSON(200, gin.H{"status": detail.Status, "name": detail.Name, "detail": detail.StatusDetail, "error": errS})
+		if err != nil {
+			utils.Error(err.Error())
+			model.BackErrorByString(ctx, fmt.Sprintf("cant find instace.%v.detail file", instanceID))
 			return
-
 		}
-		choker := make(chan struct{}, 1)
-		client.Status(instanceID, func(status, detail, name string, err string) {
-			model.BackSuccess(ctx, gin.H{"status": status, "name": name, "detail": detail, "error": err})
-			//c.JSON(200, gin.H{"status": status, "name": name, "detail": detail, "error": err})
-			close(choker)
-		})
-		<-choker
+
+		detail := cluster.InstanceDetail{}
+		err = json.Unmarshal(res, &detail)
+		errS := ""
+		if err != nil {
+			errS = err.Error()
+		}
+		model.BackSuccess(ctx, gin.H{"status": detail.Status, "name": detail.Name, "detail": detail.StatusDetail, "error": errS})
+		//c.JSON(200, gin.H{"status": detail.Status, "name": detail.Name, "detail": detail.StatusDetail, "error": errS})
+		return
+		//choker := make(chan struct{}, 1)
+		//client.Status(instanceID, func(status, detail, name string, err string) {
+		//	model.BackSuccess(ctx, gin.H{"status": status, "name": name, "detail": detail, "error": err})
+		//	//c.JSON(200, gin.H{"status": status, "name": name, "detail": detail, "error": err})
+		//	close(choker)
+		//})
+		//<-choker
 
 	}
 }
