@@ -217,8 +217,8 @@ func (cm *ControllerMannager) LoadHandler() gin.HandlerFunc {
 		}
 		// 这里structureName
 		user_path := cm.filer.GetUserPath(user.UserName)
-		filepath.Join(user_path, form.FileGroupName)
-		file_path := filepath.Join(user_path, form.StructureName)
+		file_group_path := filepath.Join(user_path, form.FileGroupName)
+		file_path := filepath.Join(file_group_path, form.StructureName)
 		option.StructureName = file_path
 		args, err := compileBuildExecArgs(option, fbToken.Value)
 		if err != nil {
