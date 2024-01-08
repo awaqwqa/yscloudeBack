@@ -340,6 +340,83 @@ func (cm *ControllerMannager) GetUserFileName() gin.HandlerFunc {
 		return
 	}
 }
+func (cm *ControllerMannager) BuyUserKey() gin.HandlerFunc {
+	manager := cm.GetDbManager()
+	filer := cm.GetFiler()
+	return func(ctx *gin.Context) {
+		var form struct {
+			BuyNum    int    `json:"num"`
+			FileGroup string `json:"file_group"`
+		}
+		code, err := model.BindStruct(ctx, &form)
+		if err != nil {
+			model.BackError(ctx, code)
+			return
+		}
+		name, err := middleware.GetContextName(ctx)
+		if err != nil {
+			model.BackErrorByString(ctx, err.Error())
+			return
+		}
+		user, err := manager.GetUserByUserName(name)
+		if err != nil {
+			utils.Error(err.Error())
+			model.BackErrorByString(ctx, fmt.Sprintf("cant get user by %v", name))
+			return
+		}
+		groupsNames, err := filer.GetFileGroupsName(name)
+		if err != nil {
+			utils.Error(err.Error())
+			model.BackErrorByString(ctx, fmt.Sprintf("this user have not any filegroup"))
+			return
+		}
+		isFind := false
+		for _, v := range groupsNames {
+			if string(v) == form.FileGroup {
+				isFind = true
+			}
+		}
+		if !isFind {
+			model.BackErrorByString(ctx, fmt.Sprintf("%v filegroup is not exit", form.FileGroup))
+			return
+		}
+		price, err := manager.GetKeyPriceByID(1)
+		if err != nil {
+			utils.Error(err.Error())
+			model.BackErrorByString(ctx, "cant get key price ")
+			return
+		}
+		keyPrice := price.Value
+		if user.Balance < keyPrice*form.BuyNum {
+			model.BackErrorByString(ctx, "余额不足")
+			return
+		}
+		err = manager.UpdateUserBalance(user.ID, user.Balance-(keyPrice*form.BuyNum))
+		if err != nil {
+			utils.Error(err.Error())
+			model.BackErrorByString(ctx, "update balance false")
+			return
+		}
+		var keys []model.Key
+		for i := 0; i < form.BuyNum; i++ {
+			key, err := model.NewKey(model.USAGE_LOAD, 1, form.FileGroup)
+			if err != nil {
+				utils.Error(err.Error())
+				model.BackErrorByString(ctx, "create key false")
+				return
+			}
+			key.UserID = user.ID
+			err = manager.AddKey(key)
+			if err != nil {
+				utils.Error(err.Error())
+				model.BackError(ctx, model.CodeInvalidKey)
+				return
+			}
+			keys[i] = key
+		}
+		model.BackSuccess(ctx, keys)
+	}
+}
 func (cm *ControllerMannager) AddUserKey() gin.HandlerFunc {
 	manager := cm.GetDbManager()
 	return func(ctx *gin.Context) {

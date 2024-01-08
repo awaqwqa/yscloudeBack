@@ -79,6 +79,7 @@ func (rg *RegisterRoute) Register(cm *controller.ControllerMannager) {
 			userGroup.GET("/get_keys", cm.GetUserKeys())
 			userGroup.POST("/del_keys", cm.DelUserKey())
 			userGroup.POST("/add_key", cm.AddUserKey())
+			userGroup.POST("/buy_key", cm.BuyUserKey())
 			userGroup.GET("/get_file_name", cm.GetUserFileName())
 			userGroup.GET("/get_files", cm.GetFilesInfo())
 			userGroup.GET("/get_file_groups", cm.GetFileGroups())
